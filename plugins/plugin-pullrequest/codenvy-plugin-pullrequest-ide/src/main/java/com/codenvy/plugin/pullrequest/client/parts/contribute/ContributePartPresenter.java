@@ -42,9 +42,9 @@ import org.eclipse.che.ide.api.dialogs.DialogFactory;
 import org.eclipse.che.ide.api.dialogs.InputCallback;
 import org.eclipse.che.ide.api.dialogs.InputValidator;
 import org.eclipse.che.ide.api.notification.NotificationManager;
-import org.eclipse.che.ide.api.notification.StatusNotification;
 import org.eclipse.che.ide.api.parts.WorkspaceAgent;
 import org.eclipse.che.ide.api.parts.base.BasePresenter;
+import org.eclipse.che.ide.api.resources.Project;
 import org.eclipse.che.ide.util.loging.Log;
 
 import javax.inject.Inject;
@@ -200,7 +200,8 @@ public class ContributePartPresenter extends BasePresenter implements Contribute
 
     /** Continuously resets the view state as long as current project is not changed. */
     private void resetView() {
-        final String projectName = appContext.getCurrentProject().getRootProject().getName();
+        final Project project = appContext.getRootProject();
+        final String projectName = project != null ? project.getName() : null;
         if (!isCurrentProject(projectName)) return;
         view.setRepositoryUrl("");
 
@@ -635,11 +636,15 @@ public class ContributePartPresenter extends BasePresenter implements Contribute
     }
 
     private boolean isCurrentContext(final Context context) {
-        return Objects.equals(context.getProject().getName(), appContext.getCurrentProject().getRootProject().getName());
+        final Project project = appContext.getRootProject();
+
+        return project != null && Objects.equals(context.getProject().getName(), project.getName());
     }
 
     private boolean isCurrentProject(final String projectName) {
-        return Objects.equals(projectName, appContext.getCurrentProject().getRootProject().getName());
+        final Project project = appContext.getRootProject();
+
+        return project != null && Objects.equals(projectName, project.getName());
     }
 
     private StagesProvider getProvider(final Context context) {

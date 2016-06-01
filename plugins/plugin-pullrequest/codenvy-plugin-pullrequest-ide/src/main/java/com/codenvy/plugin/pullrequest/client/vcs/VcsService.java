@@ -14,11 +14,11 @@
  */
 package com.codenvy.plugin.pullrequest.client.vcs;
 
+import org.eclipse.che.api.core.model.project.ProjectConfig;
 import org.eclipse.che.api.git.shared.Branch;
 import org.eclipse.che.api.git.shared.PushResponse;
 import org.eclipse.che.api.git.shared.Remote;
 import org.eclipse.che.api.promises.client.Promise;
-import org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
@@ -42,7 +42,7 @@ public interface VcsService {
      * @param callback
      *         callback when the operation is done.
      */
-    void addRemote(@NotNull ProjectConfigDto project, @NotNull String remote, @NotNull String remoteUrl,
+    void addRemote(@NotNull ProjectConfig project, @NotNull String remote, @NotNull String remoteUrl,
                    @NotNull AsyncCallback<Void> callback);
 
     /**
@@ -57,7 +57,7 @@ public interface VcsService {
      * @param callback
      *         callback when the operation is done.
      */
-    void checkoutBranch(@NotNull ProjectConfigDto project, @NotNull String branchName, boolean createNew,
+    void checkoutBranch(@NotNull ProjectConfig project, @NotNull String branchName, boolean createNew,
                         @NotNull AsyncCallback<String> callback);
 
     /**
@@ -72,7 +72,7 @@ public interface VcsService {
      * @param callback
      *         callback when the operation is done.
      */
-    void commit(@NotNull ProjectConfigDto project, boolean includeUntracked, @NotNull String commitMessage,
+    void commit(@NotNull ProjectConfig project, boolean includeUntracked, @NotNull String commitMessage,
                 @NotNull AsyncCallback<Void> callback);
 
     /**
@@ -85,7 +85,7 @@ public interface VcsService {
      * @param callback
      *         callback when the operation is done.
      */
-    void deleteRemote(@NotNull ProjectConfigDto project, @NotNull String remote, @NotNull AsyncCallback<Void> callback);
+    void deleteRemote(@NotNull ProjectConfig project, @NotNull String remote, @NotNull AsyncCallback<Void> callback);
 
     /**
      * Returns the name of the current branch for the given {@code project}.
@@ -94,7 +94,7 @@ public interface VcsService {
      *         the project.
      * @return the promise that resolves branch name or rejects with an error
      */
-    Promise<String> getBranchName(ProjectConfigDto project);
+    Promise<String> getBranchName(ProjectConfig project);
 
     /**
      * Returns if the given project has uncommitted changes.
@@ -104,7 +104,7 @@ public interface VcsService {
      * @param callback
      *         what to do if the project has uncommitted changes.
      */
-    void hasUncommittedChanges(@NotNull ProjectConfigDto project, @NotNull AsyncCallback<Boolean> callback);
+    void hasUncommittedChanges(@NotNull ProjectConfig project, @NotNull AsyncCallback<Boolean> callback);
 
     /**
      * Returns if a local branch with the given name exists in the given project.
@@ -116,7 +116,7 @@ public interface VcsService {
      * @param callback
      *         callback called when operation is done.
      */
-    void isLocalBranchWithName(@NotNull ProjectConfigDto project, @NotNull String branchName, @NotNull AsyncCallback<Boolean> callback);
+    void isLocalBranchWithName(@NotNull ProjectConfig project, @NotNull String branchName, @NotNull AsyncCallback<Boolean> callback);
 
     /**
      * List the local branches.
@@ -126,7 +126,7 @@ public interface VcsService {
      * @param callback
      *         what to do with the branches list.
      */
-    void listLocalBranches(@NotNull ProjectConfigDto project, @NotNull AsyncCallback<List<Branch>> callback);
+    void listLocalBranches(@NotNull ProjectConfig project, @NotNull AsyncCallback<List<Branch>> callback);
 
     /**
      * Returns the list of the remotes for given {@code project}.
@@ -135,7 +135,7 @@ public interface VcsService {
      *         the project
      * @return the promise which resolves {@literal List<Remote>} or rejects with an error
      */
-    Promise<List<Remote>> listRemotes(ProjectConfigDto project);
+    Promise<List<Remote>> listRemotes(ProjectConfig project);
 
     /**
      * Push a local branch to remote.
@@ -147,7 +147,7 @@ public interface VcsService {
      * @param localBranchName
      *         the local branch name
      */
-    Promise<PushResponse> pushBranch(ProjectConfigDto project,
+    Promise<PushResponse> pushBranch(ProjectConfig project,
                                      String remote,
                                      String localBranchName);
 }

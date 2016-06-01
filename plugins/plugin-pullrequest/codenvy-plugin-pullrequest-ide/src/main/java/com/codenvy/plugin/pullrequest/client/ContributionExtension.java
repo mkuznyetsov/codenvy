@@ -15,12 +15,12 @@
 package com.codenvy.plugin.pullrequest.client;
 
 import com.codenvy.plugin.pullrequest.client.parts.contribute.ContributePartPresenter;
-import com.codenvy.plugin.pullrequest.client.workflow.WorkflowExecutor;
 import com.codenvy.plugin.pullrequest.client.vcs.VcsService;
 import com.codenvy.plugin.pullrequest.client.vcs.VcsServiceProvider;
 import com.codenvy.plugin.pullrequest.client.vcs.hosting.NoVcsHostingServiceImplementationException;
 import com.codenvy.plugin.pullrequest.client.vcs.hosting.VcsHostingService;
 import com.codenvy.plugin.pullrequest.client.vcs.hosting.VcsHostingServiceProvider;
+import com.codenvy.plugin.pullrequest.client.workflow.WorkflowExecutor;
 import com.google.web.bindery.event.shared.EventBus;
 
 import org.eclipse.che.api.promises.client.Function;
@@ -30,14 +30,12 @@ import org.eclipse.che.api.promises.client.OperationException;
 import org.eclipse.che.api.promises.client.Promise;
 import org.eclipse.che.api.promises.client.PromiseError;
 import org.eclipse.che.api.promises.client.js.Promises;
-import org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto;
 import org.eclipse.che.ide.api.app.AppContext;
-import org.eclipse.che.ide.api.app.CurrentProject;
 import org.eclipse.che.ide.api.event.project.CurrentProjectChangedEvent;
 import org.eclipse.che.ide.api.event.project.CurrentProjectChangedHandler;
 import org.eclipse.che.ide.api.extension.Extension;
-import org.eclipse.che.ide.api.project.ProjectServiceClient;
-import org.eclipse.che.ide.dto.DtoFactory;
+import org.eclipse.che.ide.api.project.MutableProjectConfig;
+import org.eclipse.che.ide.api.resources.Project;
 import org.eclipse.che.ide.util.loging.Log;
 
 import javax.inject.Inject;
@@ -50,7 +48,7 @@ import static java.util.Collections.singletonList;
 /**
  * Registers event handlers for adding/removing contribution part.
  *
- * <p>Manages {@code AppContext.getCurrent().}{@link CurrentProject#getRootProject() getRootProject()}
+ * <p>Manages {@code AppContext#getRootProject}
  * current root project state, in the case of adding and removing 'contribution' mixin.
  * Contribution mixin itself is 'synthetic' one and needed only for managing plugin specific project attributes.
  *
@@ -63,12 +61,9 @@ import static java.util.Collections.singletonList;
 public class ContributionExtension {
 
     private final ContributePartPresenter   contributionPartPresenter;
-    private final AppContext                appContext;
     private final WorkflowExecutor          workflowExecutor;
     private final VcsHostingServiceProvider hostingServiceProvider;
     private final VcsServiceProvider        vcsServiceProvider;
-    private final ProjectServiceClient      projectService;
-    private final DtoFactory                dtoFactory;
 
     private String  lastSelectedProjectName;
     private boolean partWasOpened;
@@ -80,24 +75,21 @@ public class ContributionExtension {
                                  final ContributePartPresenter contributionPartPresenter,
                                  final WorkflowExecutor workflow,
                                  final VcsHostingServiceProvider vcsHostingServiceProvider,
-                                 final VcsServiceProvider vcsServiceProvider,
-                                 final ProjectServiceClient projectService,
-                                 final DtoFactory dtoFactory) {
+                                 final VcsServiceProvider vcsServiceProvider) {
         this.workflowExecutor = workflow;
         this.contributionPartPresenter = contributionPartPresenter;
-        this.appContext = appContext;
         this.hostingServiceProvider = vcsHostingServiceProvider;
         this.vcsServiceProvider = vcsServiceProvider;
-        this.projectService = projectService;
-        this.dtoFactory = dtoFactory;
 
         eventBus.addHandler(CurrentProjectChangedEvent.TYPE, new CurrentProjectChangedHandler() {
             @Override
             public void onCurrentProjectChanged(CurrentProjectChangedEvent event) {
-                final ProjectConfigDto rootProject = appContext.getCurrentProject().getRootProject();
+                final Project rootProject = appContext.getRootProject();
+                if (rootProject == null) {
+                    return;
+                }
                 if (!rootProject.getName().equals(lastSelectedProjectName) || !partWasOpened) {
-                    initializeContributorExtension(
-                            copy(rootProject)); //here need to use copy of object because it can be changed in other thread
+                    initializeContributorExtension(rootProject);
                 }
                 lastSelectedProjectName = rootProject.getName();
             }
@@ -106,19 +98,13 @@ public class ContributionExtension {
         resources.contributeCss().ensureInjected();
     }
 
-    private ProjectConfigDto copy(ProjectConfigDto origin) {
-        String json = dtoFactory.toJson(origin);
-        ProjectConfigDto copy = dtoFactory.createDtoFromJson(json, ProjectConfigDto.class);
-        return copy;
-    }
-
-    private void initializeContributorExtension(final ProjectConfigDto project) {
+    private void initializeContributorExtension(final Project project) {
         hostingServiceProvider.getVcsHostingService(project)
                               .then(initContribution(project))
                               .catchError(cancelInit(project));
     }
 
-    private Operation<PromiseError> cancelInit(final ProjectConfigDto project) {
+    private Operation<PromiseError> cancelInit(final Project project) {
         return new Operation<PromiseError>() {
             @Override
             public void apply(final PromiseError error) throws OperationException {
@@ -137,18 +123,18 @@ public class ContributionExtension {
         };
     }
 
-    private Promise<ProjectConfigDto> addMixin(final ProjectConfigDto project) {
+    private Promise<Project> addMixin(final Project project) {
         if (!project.getMixins().contains(CONTRIBUTION_PROJECT_TYPE_ID)) {
             final VcsService vcsService = vcsServiceProvider.getVcsService(project);
             return vcsService.getBranchName(project)
-                             .thenPromise(new Function<String, Promise<ProjectConfigDto>>() {
+                             .thenPromise(new Function<String, Promise<Project>>() {
                                  @Override
-                                 public Promise<ProjectConfigDto> apply(String branchName) throws FunctionException {
-                                     project.getMixins().add(CONTRIBUTION_PROJECT_TYPE_ID);
-                                     project.getAttributes().put(CONTRIBUTE_TO_BRANCH_VARIABLE_NAME, singletonList(branchName));
-                                     return projectService.updateProject(appContext.getDevMachine(),
-                                                                         project.getPath(),
-                                                                         project);
+                                 public Promise<Project> apply(String branchName) throws FunctionException {
+                                     MutableProjectConfig mutableConfig = new MutableProjectConfig(project);
+                                     mutableConfig.getMixins().add(CONTRIBUTION_PROJECT_TYPE_ID);
+                                     mutableConfig.getAttributes().put(CONTRIBUTE_TO_BRANCH_VARIABLE_NAME, singletonList(branchName));
+
+                                     return project.update().withBody(mutableConfig).send();
                                  }
                              });
         } else {
@@ -156,14 +142,14 @@ public class ContributionExtension {
         }
     }
 
-    private Operation<VcsHostingService> initContribution(final ProjectConfigDto project) {
+    private Operation<VcsHostingService> initContribution(final Project project) {
         return new Operation<VcsHostingService>() {
             @Override
             public void apply(final VcsHostingService vcsHostingService) throws OperationException {
                 addMixin(project)
-                        .then(new Operation<ProjectConfigDto>() {
+                        .then(new Operation<Project>() {
                             @Override
-                            public void apply(ProjectConfigDto project) throws OperationException {
+                            public void apply(Project project) throws OperationException {
                                 Log.info(getClass(), "INIT SUCCESSFUL :: " + project.getName());
                                 contributionPartPresenter.open();
                                 partWasOpened = true;

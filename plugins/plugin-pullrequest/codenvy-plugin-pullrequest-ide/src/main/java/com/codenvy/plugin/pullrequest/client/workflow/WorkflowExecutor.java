@@ -24,12 +24,12 @@ import com.google.common.base.Optional;
 import com.google.inject.Singleton;
 import com.google.web.bindery.event.shared.EventBus;
 
+import org.eclipse.che.api.core.model.project.ProjectConfig;
 import org.eclipse.che.api.promises.client.Function;
 import org.eclipse.che.api.promises.client.FunctionException;
 import org.eclipse.che.api.promises.client.Operation;
 import org.eclipse.che.api.promises.client.OperationException;
 import org.eclipse.che.api.promises.client.Promise;
-import org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto;
 import org.eclipse.che.ide.api.app.AppContext;
 import org.eclipse.che.ide.dto.DtoFactory;
 import org.eclipse.che.ide.util.loging.Log;
@@ -134,7 +134,7 @@ public class WorkflowExecutor {
      * @param project
      *         project for which initialization should be performed
      */
-    public void init(final VcsHostingService vcsHostingService, final ProjectConfigDto project) {
+    public void init(final VcsHostingService vcsHostingService, final ProjectConfig project) {
         final Optional<Context> contextOpt = getContext(project.getName());
         if (!contextOpt.isPresent()) {
             doInit(vcsHostingService, project);
@@ -204,7 +204,7 @@ public class WorkflowExecutor {
      * @param project
      *         project for which context should be invalidated
      */
-    public void invalidateContext(final ProjectConfigDto project) {
+    public void invalidateContext(final ProjectConfig project) {
         final Optional<Context> contextOpt = getContext(project.getName());
         if (contextOpt.isPresent()) {
             projectNameToContextMap.remove(project.getName());
@@ -213,7 +213,7 @@ public class WorkflowExecutor {
         }
     }
 
-    private void doInit(final VcsHostingService vcsHostingService, final ProjectConfigDto project) {
+    private void doInit(final VcsHostingService vcsHostingService, final ProjectConfig project) {
         final Context context = new Context(eventBus);
         context.setVcsHostingService(vcsHostingService);
         context.setVcsService(vcsServiceProvider.getVcsService(project));
@@ -229,8 +229,8 @@ public class WorkflowExecutor {
         executeNextStep(context);
     }
 
-    private ProjectConfigDto getCurrentProject() {
-        return appContext.getCurrentProject().getRootProject();
+    private ProjectConfig getCurrentProject() {
+        return appContext.getRootProject();
     }
 
     private Promise<Boolean> checkVcsState(final Context context) {

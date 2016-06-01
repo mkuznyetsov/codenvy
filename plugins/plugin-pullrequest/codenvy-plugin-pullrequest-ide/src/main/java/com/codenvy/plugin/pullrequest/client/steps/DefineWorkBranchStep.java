@@ -19,7 +19,6 @@ import com.codenvy.plugin.pullrequest.client.vcs.VcsServiceProvider;
 import com.codenvy.plugin.pullrequest.client.workflow.Context;
 import com.codenvy.plugin.pullrequest.client.workflow.Step;
 import com.codenvy.plugin.pullrequest.client.workflow.WorkflowExecutor;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.inject.Singleton;
 
 import org.eclipse.che.api.promises.client.Operation;

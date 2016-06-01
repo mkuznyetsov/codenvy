@@ -19,8 +19,8 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.inject.Inject;
 
 import org.eclipse.che.ide.api.app.AppContext;
-import org.eclipse.che.ide.api.app.CurrentProject;
 import org.eclipse.che.ide.api.notification.NotificationManager;
+import org.eclipse.che.ide.api.resources.Project;
 
 import javax.validation.constraints.NotNull;
 
@@ -29,7 +29,7 @@ import static com.codenvy.plugin.pullrequest.client.dialogs.commit.CommitPresent
 import static com.codenvy.plugin.pullrequest.client.dialogs.commit.CommitPresenter.CommitActionHandler.CommitAction.OK;
 import static org.eclipse.che.ide.api.notification.StatusNotification.DisplayMode.FLOAT_MODE;
 import static org.eclipse.che.ide.api.notification.StatusNotification.Status.FAIL;
-import static org.eclipse.che.ide.ext.git.client.GitRepositoryInitializer.isGitRepository;
+import static org.eclipse.che.ide.ext.git.client.GitUtil.isUnderGit;
 
 /**
  * This presenter provides base functionality to commit project changes or not before cloning or generating a factory url.
@@ -83,23 +83,23 @@ public class CommitPresenter implements CommitView.ActionDelegate {
      * Returns if the current project has uncommitted changes.
      */
     public void hasUncommittedChanges(final AsyncCallback<Boolean> callback) {
-        final CurrentProject project = appContext.getCurrentProject();
+        final Project project = appContext.getRootProject();
         if (project == null) {
             callback.onFailure(new IllegalStateException("No project opened"));
 
-        } else if (!isGitRepository(project.getRootProject())) {
+        } else if (!isUnderGit(project)) {
             callback.onFailure(new IllegalStateException("Opened project is not has no Git repository"));
 
         } else {
-            vcsServiceProvider.getVcsService(project.getRootProject()).hasUncommittedChanges(project.getRootProject(), callback);
+            vcsServiceProvider.getVcsService(project).hasUncommittedChanges(project, callback);
         }
     }
 
     @Override
     public void onOk() {
-        final CurrentProject project = appContext.getCurrentProject();
+        final Project project = appContext.getRootProject();
         if (project != null) {
-            vcsServiceProvider.getVcsService(project.getRootProject()).commit(project.getRootProject(), view.isIncludeUntracked(),
+            vcsServiceProvider.getVcsService(project).commit(project, view.isIncludeUntracked(),
                                                       view.getCommitDescription(), new AsyncCallback<Void>() {
                         @Override
                         public void onFailure(final Throwable exception) {

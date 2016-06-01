@@ -16,18 +16,15 @@ package com.codenvy.plugin.pullrequest.client.vcs.hosting;
 
 import com.codenvy.plugin.pullrequest.client.vcs.VcsService;
 import com.codenvy.plugin.pullrequest.client.vcs.VcsServiceProvider;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.inject.Singleton;
 
+import org.eclipse.che.api.core.model.project.ProjectConfig;
 import org.eclipse.che.api.git.shared.Remote;
 import org.eclipse.che.api.promises.client.Function;
 import org.eclipse.che.api.promises.client.FunctionException;
 import org.eclipse.che.api.promises.client.Promise;
 import org.eclipse.che.api.promises.client.js.JsPromiseError;
 import org.eclipse.che.api.promises.client.js.Promises;
-import org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto;
-import org.eclipse.che.ide.api.app.AppContext;
-import org.eclipse.che.ide.api.app.CurrentProject;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -43,15 +40,12 @@ import java.util.Set;
 public class VcsHostingServiceProvider {
     private static final String ORIGIN_REMOTE_NAME = "origin";
 
-    private final AppContext             appContext;
     private final VcsServiceProvider     vcsServiceProvider;
     private final Set<VcsHostingService> vcsHostingServices;
 
     @Inject
-    public VcsHostingServiceProvider(final AppContext appContext,
-                                     final VcsServiceProvider vcsServiceProvider,
+    public VcsHostingServiceProvider(final VcsServiceProvider vcsServiceProvider,
                                      final Set<VcsHostingService> vcsHostingServices) {
-        this.appContext = appContext;
         this.vcsServiceProvider = vcsServiceProvider;
         this.vcsHostingServices = vcsHostingServices;
     }
@@ -62,7 +56,7 @@ public class VcsHostingServiceProvider {
      * @param project
      *         project used to find origin remote and extract VCS hosting service
      */
-    public Promise<VcsHostingService> getVcsHostingService(final ProjectConfigDto project) {
+    public Promise<VcsHostingService> getVcsHostingService(final ProjectConfig project) {
         if (project == null) {
             return Promises.reject(JsPromiseError.create(new NoVcsHostingServiceImplementationException()));
         }

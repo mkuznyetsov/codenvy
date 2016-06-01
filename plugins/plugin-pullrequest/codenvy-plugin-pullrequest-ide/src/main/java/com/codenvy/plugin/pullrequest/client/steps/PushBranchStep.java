@@ -22,7 +22,6 @@ import com.codenvy.plugin.pullrequest.client.workflow.WorkflowExecutor;
 import com.codenvy.plugin.pullrequest.client.vcs.BranchUpToDateException;
 import com.codenvy.plugin.pullrequest.client.vcs.hosting.NoPullRequestException;
 import com.codenvy.plugin.pullrequest.client.dto.PullRequest;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 

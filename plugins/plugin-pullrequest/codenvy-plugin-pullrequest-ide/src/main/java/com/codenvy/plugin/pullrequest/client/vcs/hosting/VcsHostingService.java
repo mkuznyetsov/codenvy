@@ -17,7 +17,6 @@ package com.codenvy.plugin.pullrequest.client.vcs.hosting;
 import com.codenvy.plugin.pullrequest.client.dto.HostUser;
 import com.codenvy.plugin.pullrequest.client.dto.PullRequest;
 import com.codenvy.plugin.pullrequest.client.dto.Repository;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 
 import org.eclipse.che.api.promises.client.Promise;
 import org.eclipse.che.ide.api.app.CurrentUser;

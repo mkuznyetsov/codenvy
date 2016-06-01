@@ -19,7 +19,6 @@ import com.codenvy.ide.factory.client.utils.FactoryProjectImporter;
 import com.google.gwt.json.client.JSONException;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.inject.Inject;
-import com.google.web.bindery.event.shared.EventBus;
 
 import org.eclipse.che.api.factory.shared.dto.Factory;
 import org.eclipse.che.ide.api.notification.NotificationManager;
@@ -48,7 +47,6 @@ public class ImportFromConfigPresenter implements ImportFromConfigView.ActionDel
                                      FactoryProjectImporter projectImporter,
                                      ImportFromConfigView view,
                                      NotificationManager notificationManager,
-                                     final EventBus eventBus,
                                      DtoFactory dtoFactory) {
         this.factoryLocalization = factoryLocalization;
         this.notificationManager = notificationManager;

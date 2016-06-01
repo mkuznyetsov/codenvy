@@ -14,12 +14,12 @@
  */
 package com.codenvy.plugin.pullrequest.client.vcs;
 
-import org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto;
+import org.eclipse.che.api.core.model.project.ProjectConfig;
 
-import javax.validation.constraints.NotNull;
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
 
-import static org.eclipse.che.ide.ext.git.client.GitRepositoryInitializer.isGitRepository;
+import static org.eclipse.che.ide.ext.git.client.GitUtil.isUnderGit;
 
 /**
  * Provider for the {@link VcsService}.
@@ -40,9 +40,9 @@ public class VcsServiceProvider {
      * @return the {@link VcsService} implementation or {@code null} if not supported or not
      * initialized.
      */
-    public VcsService getVcsService(final ProjectConfigDto project) {
+    public VcsService getVcsService(final ProjectConfig project) {
         if (project != null) {
-            if (isGitRepository(project)) {
+            if (isUnderGit(project)) {
                 return gitVcsService;
             }
         }

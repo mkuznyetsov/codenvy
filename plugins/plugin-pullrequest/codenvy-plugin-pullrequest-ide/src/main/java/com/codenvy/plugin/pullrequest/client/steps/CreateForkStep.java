@@ -20,7 +20,6 @@ import com.codenvy.plugin.pullrequest.client.workflow.Step;
 import com.codenvy.plugin.pullrequest.client.workflow.WorkflowExecutor;
 import com.codenvy.plugin.pullrequest.client.vcs.hosting.NoUserForkException;
 import com.codenvy.plugin.pullrequest.client.dto.Repository;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 

@@ -14,6 +14,8 @@
  */
 package com.codenvy.plugin.pullrequest.client.workflow;
 
+import org.eclipse.che.api.core.model.project.ProjectConfig;
+
 /**
  * Defines workflow status contract.
  *
@@ -24,7 +26,7 @@ public enum WorkflowStatus {
     /**
      * The workflow is in initializing status only and only if chain executor
      * is performing {@link ContributionWorkflow#initChain(Context)} steps.
-     * If workflow is not initialized properly then {@link WorkflowExecutor#invalidateContext(Context)}
+     * If workflow is not initialized properly then {@link WorkflowExecutor#invalidateContext(ProjectConfig)}
      * method should be performed which will invalidate context and remove initializing status.
      *
      * <p>The status map:

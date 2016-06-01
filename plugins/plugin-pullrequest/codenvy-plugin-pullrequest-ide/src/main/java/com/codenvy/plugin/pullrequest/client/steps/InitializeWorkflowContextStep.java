@@ -25,11 +25,11 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.inject.Singleton;
 
+import org.eclipse.che.api.core.model.project.ProjectConfig;
 import org.eclipse.che.api.git.shared.Remote;
 import org.eclipse.che.api.promises.client.Operation;
 import org.eclipse.che.api.promises.client.OperationException;
 import org.eclipse.che.api.promises.client.PromiseError;
-import org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto;
 import org.eclipse.che.ide.api.notification.NotificationManager;
 
 import javax.inject.Inject;
@@ -104,7 +104,7 @@ public class InitializeWorkflowContextStep implements Step {
         };
     }
 
-    private String getContributeToBranchName(final ProjectConfigDto project) {
+    private String getContributeToBranchName(final ProjectConfig project) {
         final Map<String, List<String>> attrs = project.getAttributes();
         if (attrs.containsKey(CONTRIBUTE_TO_BRANCH_VARIABLE_NAME) && !attrs.get(CONTRIBUTE_TO_BRANCH_VARIABLE_NAME).isEmpty()) {
             return attrs.get(CONTRIBUTE_TO_BRANCH_VARIABLE_NAME).get(0);

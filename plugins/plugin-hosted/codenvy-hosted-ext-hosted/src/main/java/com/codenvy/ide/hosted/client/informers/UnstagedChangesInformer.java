@@ -20,7 +20,7 @@ import org.eclipse.che.ide.api.action.Action;
 import org.eclipse.che.ide.api.action.ActionEvent;
 import org.eclipse.che.ide.api.action.AppCloseActionEvent;
 import org.eclipse.che.ide.api.app.AppContext;
-import org.eclipse.che.ide.api.app.CurrentProject;
+import org.eclipse.che.ide.api.resources.Project;
 import org.eclipse.che.ide.rest.RestContext;
 
 /**
@@ -129,11 +129,11 @@ public class UnstagedChangesInformer extends Action {
      * Returns path of current opened project.
      */
     private String getCurrentProjectPath() {
-        CurrentProject project = appContext.getCurrentProject();
+        Project project = appContext.getRootProject();
         if (project == null) {
             return null;
         }
 
-        return project.getRootProject().getPath();
+        return project.getLocation().toString();
     }
 }

@@ -18,6 +18,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import org.eclipse.che.api.core.model.project.ProjectConfig;
 import org.eclipse.che.api.git.shared.Branch;
 import org.eclipse.che.api.git.shared.CheckoutRequest;
 import org.eclipse.che.api.git.shared.PushResponse;
@@ -32,7 +33,6 @@ import org.eclipse.che.api.promises.client.Promise;
 import org.eclipse.che.api.promises.client.PromiseError;
 import org.eclipse.che.api.promises.client.js.JsPromiseError;
 import org.eclipse.che.api.promises.client.js.Promises;
-import org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto;
 import org.eclipse.che.ide.api.app.AppContext;
 import org.eclipse.che.ide.api.git.GitServiceClient;
 import org.eclipse.che.ide.dto.DtoFactory;
@@ -44,7 +44,6 @@ import org.eclipse.che.ide.websocket.rest.RequestCallback;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -72,7 +71,7 @@ public class GitVcsService implements VcsService {
     }
 
     @Override
-    public void addRemote(@NotNull final ProjectConfigDto project, @NotNull final String remote, @NotNull final String remoteUrl,
+    public void addRemote(@NotNull final ProjectConfig project, @NotNull final String remote, @NotNull final String remoteUrl,
                           @NotNull final AsyncCallback<Void> callback) {
 
         service.remoteAdd(appContext.getDevMachine(), project, remote, remoteUrl, new AsyncRequestCallback<String>() {
@@ -89,7 +88,7 @@ public class GitVcsService implements VcsService {
     }
 
     @Override
-    public void checkoutBranch(@NotNull final ProjectConfigDto project, @NotNull final String name,
+    public void checkoutBranch(@NotNull final ProjectConfig project, @NotNull final String name,
                                final boolean createNew, @NotNull final AsyncCallback<String> callback) {
 
         service.checkout(appContext.getDevMachine(),
@@ -111,7 +110,7 @@ public class GitVcsService implements VcsService {
     }
 
     @Override
-    public void commit(@NotNull final ProjectConfigDto project, final boolean includeUntracked, @NotNull final String commitMessage,
+    public void commit(@NotNull final ProjectConfig project, final boolean includeUntracked, @NotNull final String commitMessage,
                        @NotNull final AsyncCallback<Void> callback) {
         try {
 
@@ -144,7 +143,7 @@ public class GitVcsService implements VcsService {
     }
 
     @Override
-    public void deleteRemote(@NotNull final ProjectConfigDto project, @NotNull final String remote,
+    public void deleteRemote(@NotNull final ProjectConfig project, @NotNull final String remote,
                              @NotNull final AsyncCallback<Void> callback) {
         service.remoteDelete(appContext.getDevMachine(), project, remote, new AsyncRequestCallback<String>() {
             @Override
@@ -160,7 +159,7 @@ public class GitVcsService implements VcsService {
     }
 
     @Override
-    public Promise<String> getBranchName(ProjectConfigDto project) {
+    public Promise<String> getBranchName(ProjectConfig project) {
         return service.status(appContext.getDevMachine(), project)
                       .then(new Function<Status, String>() {
                           @Override
@@ -171,7 +170,7 @@ public class GitVcsService implements VcsService {
     }
 
     @Override
-    public void hasUncommittedChanges(@NotNull final ProjectConfigDto project, @NotNull final AsyncCallback<Boolean> callback) {
+    public void hasUncommittedChanges(@NotNull final ProjectConfig project, @NotNull final AsyncCallback<Boolean> callback) {
         service.status(appContext.getDevMachine(), project)
                .then(new Operation<Status>() {
                    @Override
@@ -188,7 +187,7 @@ public class GitVcsService implements VcsService {
     }
 
     @Override
-    public void isLocalBranchWithName(@NotNull final ProjectConfigDto project, @NotNull final String branchName,
+    public void isLocalBranchWithName(@NotNull final ProjectConfig project, @NotNull final String branchName,
                                       @NotNull final AsyncCallback<Boolean> callback) {
 
         listLocalBranches(project, new AsyncCallback<List<Branch>>() {
@@ -211,17 +210,17 @@ public class GitVcsService implements VcsService {
     }
 
     @Override
-    public void listLocalBranches(@NotNull final ProjectConfigDto project, @NotNull final AsyncCallback<List<Branch>> callback) {
+    public void listLocalBranches(@NotNull final ProjectConfig project, @NotNull final AsyncCallback<List<Branch>> callback) {
         listBranches(project, null, callback);
     }
 
     @Override
-    public Promise<List<Remote>> listRemotes(ProjectConfigDto project) {
+    public Promise<List<Remote>> listRemotes(ProjectConfig project) {
         return service.remoteList(appContext.getDevMachine(), project, null, false);
     }
 
     @Override
-    public Promise<PushResponse> pushBranch(final ProjectConfigDto project, final String remote, final String localBranchName) {
+    public Promise<PushResponse> pushBranch(final ProjectConfig project, final String remote, final String localBranchName) {
         return service.push(appContext.getDevMachine(), project, Collections.singletonList(localBranchName), remote, true)
                       .catchErrorPromise(new Function<PromiseError, Promise<PushResponse>>() {
                           @Override
@@ -245,7 +244,7 @@ public class GitVcsService implements VcsService {
      * @param callback
      *         callback when the operation is done.
      */
-    private void listBranches(final ProjectConfigDto project, final String whichBranches, final AsyncCallback<List<Branch>> callback) {
+    private void listBranches(final ProjectConfig project, final String whichBranches, final AsyncCallback<List<Branch>> callback) {
         final Unmarshallable<List<Branch>> unMarshaller =
                 dtoUnmarshallerFactory.newListUnmarshaller(Branch.class);
         service.branchList(appContext.getDevMachine(), project, whichBranches,

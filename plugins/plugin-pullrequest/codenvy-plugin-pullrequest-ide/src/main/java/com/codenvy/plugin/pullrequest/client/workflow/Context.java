@@ -21,7 +21,7 @@ import com.codenvy.plugin.pullrequest.client.dto.Configuration;
 import com.codenvy.plugin.pullrequest.client.dto.PullRequest;
 import com.google.web.bindery.event.shared.EventBus;
 
-import org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto;
+import org.eclipse.che.api.core.model.project.ProjectConfig;
 import org.eclipse.che.commons.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ public class Context {
     private final EventBus eventBus;
 
     /** The project. */
-    private ProjectConfigDto project;
+    private ProjectConfig project;
 
     /** The name of the branch to contribute to. */
     private String contributeToBranchName;
@@ -100,12 +100,12 @@ public class Context {
         viewState = new ViewState();
     }
 
-    public ProjectConfigDto getProject() {
+    public ProjectConfig getProject() {
         return project;
     }
 
-    public void setProject(final ProjectConfigDto project) {
-        final ProjectConfigDto oldValue = this.project;
+    public void setProject(final ProjectConfig project) {
+        final ProjectConfig oldValue = this.project;
         this.project = project;
 
         fireContextPropertyChange(PROJECT, oldValue, project);

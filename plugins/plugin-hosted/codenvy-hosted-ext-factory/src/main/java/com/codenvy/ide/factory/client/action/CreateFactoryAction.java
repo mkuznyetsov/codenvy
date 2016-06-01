@@ -15,19 +15,15 @@
 package com.codenvy.ide.factory.client.action;
 
 import com.codenvy.ide.factory.client.FactoryLocalizationConstant;
-import com.codenvy.ide.factory.client.FactoryResources;
 import com.codenvy.ide.factory.client.configure.CreateFactoryPresenter;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import org.eclipse.che.ide.api.action.AbstractPerspectiveAction;
 import org.eclipse.che.ide.api.action.ActionEvent;
-import org.eclipse.che.ide.api.factory.FactoryServiceClient;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collections;
-
-import static org.eclipse.che.ide.workspace.perspectives.project.ProjectPerspective.PROJECT_PERSPECTIVE_ID;
 
 /**
  * @author Anton Korneta
@@ -36,18 +32,12 @@ import static org.eclipse.che.ide.workspace.perspectives.project.ProjectPerspect
 public class CreateFactoryAction extends AbstractPerspectiveAction {
 
     private final CreateFactoryPresenter      presenter;
-    private final FactoryServiceClient        factoryService;
-    private final FactoryLocalizationConstant locale;
 
     @Inject
     public CreateFactoryAction(CreateFactoryPresenter presenter,
-                               FactoryResources resources,
-                               FactoryLocalizationConstant locale,
-                               FactoryServiceClient factoryService) {
-        super(Collections.singletonList(PROJECT_PERSPECTIVE_ID), locale.createFactoryActionTitle(), null, null, null);
+                               FactoryLocalizationConstant locale) {
+        super(Collections.singletonList("Project Perspective"), locale.createFactoryActionTitle(), null, null, null);
         this.presenter = presenter;
-        this.factoryService = factoryService;
-        this.locale = locale;
     }
 
     @Override

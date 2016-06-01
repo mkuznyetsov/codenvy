@@ -18,13 +18,13 @@ import com.codenvy.plugin.pullrequest.client.workflow.Context;
 import com.codenvy.plugin.pullrequest.client.workflow.WorkflowExecutor;
 import com.google.gwt.event.shared.GwtEvent;
 
-import org.eclipse.che.api.workspace.shared.dto.ProjectConfigDto;
+import org.eclipse.che.api.core.model.project.ProjectConfig;
 
 /**
  * This event is fired when context is invalidated.
  *
  * @author Yevhenii Voevodin
- * @see WorkflowExecutor#invalidateContext(ProjectConfigDto)
+ * @see WorkflowExecutor#invalidateContext(ProjectConfig)
  */
 public class ContextInvalidatedEvent extends GwtEvent<ContextInvalidatedHandler> {
 
