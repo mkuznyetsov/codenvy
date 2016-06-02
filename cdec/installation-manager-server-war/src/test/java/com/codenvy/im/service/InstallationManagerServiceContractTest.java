@@ -16,10 +16,10 @@ package com.codenvy.im.service;
 
 import com.codenvy.im.artifacts.Artifact;
 import com.codenvy.im.artifacts.CDECArtifact;
+import com.codenvy.im.artifacts.InstallManagerArtifact;
 import com.codenvy.im.event.Event;
 import com.codenvy.im.facade.IMCliFilteredFacade;
 import com.codenvy.im.managers.BackupConfig;
-import com.codenvy.im.managers.Config;
 import com.codenvy.im.managers.ConfigManager;
 import com.codenvy.im.managers.DownloadAlreadyStartedException;
 import com.codenvy.im.managers.DownloadNotStartedException;
@@ -74,6 +74,8 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
     public ConfigManager       mockConfigManager;
     @Mock
     public Artifact            mockCdecArtifact;
+    @Mock
+    public Artifact            mockImArtifact;
 
     public InstallationManagerService spyService;
 
@@ -83,6 +85,7 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
 
         spyService = spy(new InstallationManagerService("", mockFacade, mockConfigManager));
         doReturn(mockCdecArtifact).when(spyService).createArtifact(eq(CDECArtifact.NAME));
+        doReturn(mockImArtifact).when(spyService).createArtifact(eq(InstallManagerArtifact.NAME));
     }
 
     @Test
@@ -235,7 +238,7 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
             null,                            // response body
             Response.Status.NO_CONTENT,      // response status
             null,                            // before test
-            () -> {                           // before test
+            () -> {                          // before test
                 try {
                     verify(mockFacade).stopDownload();
                 } catch (InterruptedException | DownloadNotStartedException e) {
@@ -255,9 +258,9 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
             HttpMethod.GET,                  // HTTP method
             "{\n" +
             "    \"percents\": 0\n" +
-            "}",                           // response body
+            "}",                             // response body
             Response.Status.OK,              // response status
-            () -> {                           // before test
+            () -> {                          // before test
                 try {
                     DownloadProgressResponse downloadDescriptor = new DownloadProgressResponse();
                     doReturn(downloadDescriptor).when(mockFacade).getDownloadProgress();
@@ -272,7 +275,7 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
     @Test
     public void testGetInstalledVersions() {
         testContract(
-                "installations",                  // path
+                "installations",             // path
             null,                            // query parameters
             null,                            // request body
             null,                            // consume content type
@@ -280,9 +283,9 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
             HttpMethod.GET,                  // HTTP method
             "[\n" +
             "    \n" +
-            "]",                // response body
+            "]",                             // response body
             Response.Status.OK,              // response status
-            () -> {                           // before test
+            () -> {                          // before test
                 try {
                     doReturn(ImmutableList.of()).when(mockFacade).getInstalledVersions();
                 } catch (IOException e) {
@@ -296,7 +299,7 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
     @Test
     public void testGetUpdates() {
         testContract(
-                "updates",                        // path
+                "updates",                   // path
             null,                            // query parameters
             null,                            // request body
             null,                            // consume content type
@@ -304,9 +307,9 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
             HttpMethod.GET,                  // HTTP method
             "[\n" +
             "    \n" +
-            "]",                // response body
+            "]",                             // response body
             Response.Status.OK,              // response status
-            () -> {                           // before test
+            () -> {                          // before test
                 try {
                     doReturn(Collections.emptyList()).when(mockFacade).getUpdates();
                 } catch (IOException e) {
@@ -324,11 +327,11 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
             ImmutableMap.of("step", "1"),    // query parameters
             null,                            // request body
             null,                            // consume content type
-            null,                // produce content type
+            null,                            // produce content type
             HttpMethod.POST,                 // HTTP method
-            null,                // response body
-            Response.Status.ACCEPTED,              // response status
-            () -> {                           // before test
+            null,                            // response body
+            Response.Status.ACCEPTED,        // response status
+            () -> {                          // before test
                 try {
                     doReturn(InstallType.SINGLE_SERVER).when(mockConfigManager).detectInstallationType();
                     doReturn(null).when(mockConfigManager).prepareInstallProperties(anyString(),
@@ -359,7 +362,7 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
             HttpMethod.POST,                                   // HTTP method
             "",                                                // response body
             Response.Status.OK,                                // response status
-            () -> {                                             // before test
+            () -> {                                            // before test
                 try {
                     doReturn(DtoFactory.newDto(Token.class).withValue("token"))
                             .when(mockFacade)
@@ -385,7 +388,7 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
             + "    \"a\": \"b\"\n"
             + "}",                                             // response body
             Response.Status.OK,                                // response status
-            () -> {                                             // before test
+            () -> {                                            // before test
                 try {
                     doReturn(ImmutableMap.of("a", "b")).when(mockFacade).loadStorageProperties();
                 } catch (IOException e) {
@@ -408,7 +411,7 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
             "",                                                // response body
             Response.Status.OK,                                // response status
             null,                                              // before test
-            () -> {                                             // before test
+            () -> {                                            // before test
                 try {
                     verify(mockFacade).storeStorageProperties(ImmutableMap.of("a", "b"));
                 } catch (IOException e) {
@@ -429,7 +432,7 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
             HttpMethod.GET,                                   // HTTP method
             "b",                                              // response body
             Response.Status.OK,                               // response status
-            () -> {                                            // before test
+            () -> {                                           // before test
                 try {
                     doReturn("b").when(mockFacade).loadStorageProperty("a");
                 } catch (IOException e) {
@@ -452,7 +455,7 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
             "",                                               // response body
             Response.Status.OK,                               // response status
             null,                                             // before test
-            () -> {                                            // before test
+            () -> {                                           // before test
                 try {
                     verify(mockFacade).storeStorageProperty("a", "b");
                 } catch (IOException e) {
@@ -474,7 +477,7 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
             null,                                             // response body
             Response.Status.NO_CONTENT,                       // response status
             null,                                             // before test
-            () -> {                                            // before test
+            () -> {                                           // before test
                 try {
                     verify(mockFacade).deleteStorageProperty("a");
                 } catch (IOException e) {
@@ -498,7 +501,7 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
             + "    \"password\": \"*****\"\n"
             + "}",                                             // response body
             Response.Status.OK,                                // response status
-            () -> {                                             // before test
+            () -> {                                            // before test
                 try {
                     doReturn(ImmutableMap.of("a", "b", "password", "*****")).when(mockFacade).getArtifactConfig(mockCdecArtifact);
                 } catch (IOException e) {
@@ -520,9 +523,9 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
             HttpMethod.GET,                                   // HTTP method
             "{\n" +
             "    \"host_url\": \"test.com\"\n" +
-            "}",                                       // response body
+            "}",                                              // response body
             Response.Status.OK,                               // response status
-            () -> {                                            // before test
+            () -> {                                           // before test
                 try {
                     doReturn(ImmutableMap.of("host_url", "test.com")).when(mockFacade).getArtifactConfig(mockCdecArtifact);
                 } catch (IOException e) {
@@ -536,14 +539,14 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
     @Test
     public void testUpdateCodenvyProperty() {
         testContract(
-                "codenvy/properties",                           // path
+                "codenvy/properties",                         // path
             null,                                             // query parameters
-            "{\"a\":\"b\"}",                                          // request body
+            "{\"a\":\"b\"}",                                  // request body
             ContentType.JSON,                                 // consume content type
             null,                                             // produce content type
             HttpMethod.PUT,                                   // HTTP method
-            null,                                               // response body
-            Response.Status.CREATED,                               // response status
+            null,                                             // response body
+            Response.Status.CREATED,                          // response status
             null,                                             // before test
             () -> {
                 try {
@@ -558,12 +561,12 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
     @Test
     public void testGetArtifactProperties() {
         testContract(
-            "artifact/test/version/1.0.0/properties",            // path
-            null,                                                // query parameters
-            null,                                                // request body
-            null,                                                // consume content type
-            ContentType.JSON,                                    // produce content type
-            HttpMethod.GET,                                      // HTTP method
+            "artifact/test/version/1.0.0/properties",          // path
+            null,                                              // query parameters
+            null,                                              // request body
+            null,                                              // consume content type
+            ContentType.JSON,                                  // produce content type
+            HttpMethod.GET,                                    // HTTP method
             "{\n"
             + "    \"message\": \"Artifact 'test' not found\"\n"
             + "}",                                               // response body
@@ -588,11 +591,10 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
              Response.Status.OK,                                  // response status
              () -> {                                               // before test
                  try {
-                     doReturn(ImmutableMap.of("a", "b")).when(mockFacade).getArtifactConfig(mockCdecArtifact);
+                     doReturn(ImmutableMap.of("a", "b")).when(mockFacade).getArtifactConfig(mockImArtifact);
                  } catch (IOException e) {
                      fail(e.getMessage(), e);
                  }
-
              },
              null                                                 // assertion
         );
@@ -641,7 +643,6 @@ public class InstallationManagerServiceContractTest extends BaseContractTest {
                 } catch (IOException e) {
                     fail(e.getMessage(), e);
                 }
-
             }                                                 // assertion
         );
     }

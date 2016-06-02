@@ -23,12 +23,11 @@
   <div ng-if="!adminsUserManagementCtrl.isLoading">
     <div class="user-list-title">List of users</div>
     <md-content class="user-management-content">
-      <div flex layout="row" layout-align="end center"  ng-class="{ 'list-small': !adminsUserManagementCtrl.$mdMedia('gt-sm') }">
+      <div flex layout="row" layout-align="end center" ng-class="{ 'list-small': !adminsUserManagementCtrl.$mdMedia('gt-sm') }">
         <che-list flex ng-if="adminsUserManagementCtrl.users && adminsUserManagementCtrl.users.length > 0"
-                  ng-class="{ 'admin-user-list': adminsUserManagementCtrl.users.length > 14 }"
-                  che-list-on-scroll-bottom="adminsUserManagementCtrl.loadNextPage()">
+                  ng-class="{ 'admin-user-list': adminsUserManagementCtrl.users.length > 14 }">
           <che-list-item ng-repeat="user in adminsUserManagementCtrl.users" flex-gt-sm="100" flex="33" ng-mouseover="hover=true"
-                          ng-mouseout="hover=false">
+                         ng-mouseout="hover=false">
             <div layout-gt-sm="row" flex="100" class="user-row" layout-align="start center">
               <img class="user-face" gravatar-src="user.email">
               <span class="user-email" flex="50" layout="row">{{user.email}}</span>
@@ -49,6 +48,31 @@
             <span class="fa fa-plus"></span>
           </md-button>
         </div>
+      </div>
+      <div class="paging-buttons-area" ng-if="adminsUserManagementCtrl.isPagination()">
+        <md-button
+                ng-disabled="!adminsUserManagementCtrl.hasPreviousPage()"
+                ng-click="adminsUserManagementCtrl.fetchUsersPage('first');">
+          <span><<</span>
+        </md-button>
+        <md-button
+                ng-disabled="!adminsUserManagementCtrl.hasPreviousPage()"
+                ng-click="adminsUserManagementCtrl.fetchUsersPage('prev');">
+          <span><</span>
+        </md-button>
+        <md-button disabled>
+          <span>{{adminsUserManagementCtrl.pagesInfo.currentPageNumber}}</span>
+        </md-button>
+        <md-button
+                ng-disabled="!adminsUserManagementCtrl.hasNextPage()"
+                ng-click="adminsUserManagementCtrl.fetchUsersPage('next');">
+          <span>></span>
+        </md-button>
+        <md-button
+                ng-disabled="!adminsUserManagementCtrl.hasNextPage()"
+                ng-click="adminsUserManagementCtrl.fetchUsersPage('last');">
+          <span>>></span>
+        </md-button>
       </div>
     </md-content>
   </div>

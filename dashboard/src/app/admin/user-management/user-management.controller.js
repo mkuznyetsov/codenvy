@@ -35,7 +35,7 @@ export class AdminsUserManagementCtrl {
 
     this.isLoading = false;
 
-    this.maxItems = 15;
+    this.maxItems = 12;
     this.skipCount = 0;
 
     this.users = [];
@@ -44,15 +44,19 @@ export class AdminsUserManagementCtrl {
     if (this.usersMap && this.usersMap.size > 1) {
       this.updateUsers();
     } else {
-    this.isLoading = true;
-    codenvyAPI.getUser().fetchUsers(this.maxItems, this.skipCount).then(() => {
-      this.isLoading = false;
-      this.updateUsers();
-    }, (error) => {
-      this.isLoading = false;
-      this.cheNotification.showError(error.data.message ? error.data.message : '.');
-    });
-  }
+      this.isLoading = true;
+      codenvyAPI.getUser().fetchUsers(this.maxItems, this.skipCount).then(() => {
+        this.isLoading = false;
+        this.updateUsers();
+      }, (error) => {
+        this.isLoading = false;
+        if (error && error.status !== 304) {
+          this.cheNotification.showError(error.data && error.data.message ? error.data.message : 'Failed to retrieve the list of users.');
+        }
+      });
+    }
+
+    this.pagesInfo = codenvyAPI.getUser().getPagesInfo();
   }
 
   /**
@@ -67,20 +71,45 @@ export class AdminsUserManagementCtrl {
   }
 
   /**
-   * Load more factories, coll this function on list scroll down
+   * Ask for loading the users page in asynchronous way
+   * @param pageKey - the key of page
    */
-  loadNextPage() {
-    this.skipCount = this.users.length;
-
-    let promise = this.codenvyAPI.getUser().fetchUsers(this.maxItems, this.skipCount);
+  fetchUsersPage(pageKey) {
+    let promise = this.codenvyAPI.getUser().fetchUsersPage(pageKey);
 
     promise.then(() => {
       this.updateUsers();
     }, (error) => {
-      if (error.status !== 304) {
-        this.cheNotification.showError(error.data.message ? error.data.message : 'Update information failed.');
+      if (error.status === 304) {
+        this.updateUsers();
+      } else {
+        this.cheNotification.showError(error.data && error.data.message ? error.data.message : 'Update information failed.');
       }
     });
+  }
+
+  /**
+   * Returns true if the next page is exist.
+   * @returns {boolean}
+   */
+  hasNextPage() {
+    return this.pagesInfo.currentPageNumber < this.pagesInfo.countOfPages;
+  }
+
+  /**
+   * Returns true if the previous page is exist.
+   * @returns {boolean}
+   */
+  hasPreviousPage() {
+    return this.pagesInfo.currentPageNumber > 1;
+  }
+
+  /**
+   * Returns true if we have more then one page.
+   * @returns {boolean}
+   */
+  isPagination() {
+    return this.pagesInfo.countOfPages > 1;
   }
 
   /**
@@ -124,7 +153,7 @@ export class AdminsUserManagementCtrl {
         this.updateUsers();
       }, (error) => {
         this.isLoading = false;
-        this.cheNotification.showError(error.data.message ? error.data.message : 'Delete user failed.');
+        this.cheNotification.showError(error.data && error.data.message ? error.data.message : 'Delete user failed.');
       });
     });
   }

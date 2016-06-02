@@ -99,21 +99,7 @@
                 <artifactId>site</artifactId>
                 <version>${project.version}</version>
                 <type>zip</type>
-                <classifier>stage</classifier>
-            </dependency>
-            <dependency>
-                <groupId>com.codenvy</groupId>
-                <artifactId>site</artifactId>
-                <version>${project.version}</version>
-                <type>zip</type>
-                <classifier>prod</classifier>
-            </dependency>
-            <dependency>
-                <groupId>com.codenvy</groupId>
-                <artifactId>site</artifactId>
-                <version>${project.version}</version>
-                <type>zip</type>
-                <classifier>onprem-se</classifier>
+                <classifier>${site.classifier}</classifier>
             </dependency>
             <dependency>
                 <groupId>com.codenvy.cli</groupId>
@@ -196,6 +182,26 @@
             <dependency>
                 <groupId>com.codenvy.hosted-infrastructure</groupId>
                 <artifactId>codenvy-hosted-infra-filters</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.codenvy.hosted-infrastructure</groupId>
+                <artifactId>codenvy-hosted-machine-authentication</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.codenvy.hosted-infrastructure</groupId>
+                <artifactId>codenvy-hosted-machine-authentication-agent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.codenvy.hosted-infrastructure</groupId>
+                <artifactId>codenvy-hosted-machine-authentication-ide</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.codenvy.hosted-infrastructure</groupId>
+                <artifactId>codenvy-hosted-machine-authentication-shared</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -139,6 +139,32 @@ func (wp *wsPty) Stop() {
 }
 
 func ptyHandler(w http.ResponseWriter, r *http.Request) {
+	tokenParam := r.URL.Query().Get("token")
+	if tokenParam == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		log.Printf("Authentication failed: missing token.\n")
+		return
+	} else {
+		req, err := http.NewRequest("GET", apiEndpoint + "/machine/token/user/" + tokenParam, nil)
+		if err != nil {
+			log.Printf("Authentication failed: %s\n", err)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		req.Header.Add("Authorization", tokenParam)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			log.Printf("Authentication failed: %s\n", err)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		if resp.StatusCode != 200 {
+			log.Printf("Authentication failed, token: %s is invalid\n", tokenParam)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Fatalf("Websocket upgrade failed: %s\n", err)
@@ -192,7 +218,6 @@ func ptyHandler(w http.ResponseWriter, r *http.Request) {
 			if i < n {
 				buffer.Write(buf[i:n])
 			}
-
 		}
 	}()
 
@@ -252,6 +277,5 @@ func ptyHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
 	wp.Stop()
 }

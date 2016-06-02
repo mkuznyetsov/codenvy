@@ -15,13 +15,12 @@
 package com.codenvy.auth.sso.client.token;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 
 /**
  * Try to extract token from request in 3 steps.
- * 1. From cookie.
+ * 1. From query parameter.
  * 2. From header.
- * 3. From query parameter.
+ * 3. From cookie.
  *
  * @author Sergii Kabashniuk
  */
@@ -39,11 +38,11 @@ public class ChainedTokenExtractor implements RequestTokenExtractor {
     }
 
     @Override
-    public String getToken(HttpServletRequest req)  {
+    public String getToken(HttpServletRequest req) {
         String token;
         if ((token = queryRequestTokenExtractor.getToken(req)) == null) {
-            if ((token = cookieRequestTokenExtractor.getToken(req)) == null) {
-                token = headerRequestTokenExtractor.getToken(req);
+            if ((token = headerRequestTokenExtractor.getToken(req)) == null) {
+                token = cookieRequestTokenExtractor.getToken(req);
             }
         }
         return token;

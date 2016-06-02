@@ -16,6 +16,7 @@ package com.codenvy.ext.java.server;
 
 import com.codenvy.api.permission.server.PermissionChecker;
 import com.codenvy.auth.sso.client.TokenHandler;
+import com.codenvy.auth.sso.client.token.RequestTokenExtractor;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.name.Names;
@@ -109,6 +110,8 @@ public class MachineModule extends AbstractModule {
 
         bind(com.codenvy.workspace.websocket.WorkspaceWebsocketConnectionListener.class);
         install(new org.eclipse.che.commons.schedule.executor.ScheduleModule());
+
+        bind(RequestTokenExtractor.class).to(com.codenvy.auth.sso.client.token.ChainedTokenExtractor.class);
     }
 
     //it's need for WSocketEventBusClient and in the future will be replaced with the property

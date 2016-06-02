@@ -38,8 +38,8 @@ import java.io.IOException;
 public class HttpSsoServerClient implements ServerClient {
     private static final Logger LOG = LoggerFactory.getLogger(HttpSsoServerClient.class);
 
-    private final String                 apiEndpoint;
-    private final HttpJsonRequestFactory requestFactory;
+    protected final String                 apiEndpoint;
+    protected final HttpJsonRequestFactory requestFactory;
 
     @Inject
     public HttpSsoServerClient(@Named("api.endpoint") String apiEndpoint,

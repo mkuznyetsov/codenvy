@@ -96,8 +96,63 @@ initModule.factory('AuthInterceptor', ($window, $cookies, $q, $location, $log) =
   };
 });
 
-initModule.config(['$routeProvider', '$locationProvider', '$httpProvider', ($routeProvider, $locationProvider, $httpProvider) => {
+initModule.constant('codenvyDashboardConfig', {
+  developmentMode: DEV
+});
 
+// This can not be moved to separate factory class, because it is not fits into
+// model how Angular works with them. When we override request and responseError
+// functions, they are called in another context, without creating new class instance,
+// and "this" became undefined.
+// See http://stackoverflow.com/questions/30978743/how-can-this-be-undefined-in-the-constructor-of-an-angular-config-class
+initModule.factory('AddMachineTokenToUrlInterceptor', ($injector, $q) => {
+  var tokens = {};
+  function requestToken(workspaceId) {
+    return $injector.get('$http').get('/api/machine/token/' + workspaceId)
+                    .then((resp) => tokens[workspaceId] = resp.data.machineToken);
+  }
+
+  function getWorkspaceId(url) {
+    let workspaceId;
+    // In case of injection 'cheWorkspace' we will get an error with 'circular dependency found' message,
+    // so to avoid this we need to use injector.get() directly.
+    $injector.get('cheWorkspace').getWorkspaceAgents().forEach((value, key) => {
+      if (url.startsWith(value.workspaceAgentData.path)) {
+        workspaceId = key;
+      }
+    });
+    return workspaceId;
+  }
+
+  return {
+    request: function(config) {
+      if (config.url.indexOf("/ext/") === -1) {
+        return config || $q.when(config);
+      }
+
+      let workspaceId = getWorkspaceId(config.url);
+      if (!workspaceId) {
+        return config || $q.when(config);
+      }
+
+      return $q.when(tokens[workspaceId] || requestToken(workspaceId))
+               .then((token) => {
+                 config.headers['Authorization'] = token;
+                 return config;
+               })
+    },
+
+    responseError: (rejection) => {
+      if (rejection && rejection.config.url.indexOf("/ext/") !== -1) {
+        delete tokens[getWorkspaceId(rejection.config.url)];
+      }
+      return $q.reject(rejection);
+    }
+  }
+});
+
+initModule.config(['$routeProvider', '$locationProvider', '$httpProvider', ($routeProvider, $locationProvider, $httpProvider) => {
+  $httpProvider.interceptors.push('AddMachineTokenToUrlInterceptor')
   if (DEV) {
     console.log('adding auth interceptor');
     $httpProvider.interceptors.push('AuthInterceptor');

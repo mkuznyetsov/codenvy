@@ -14,6 +14,8 @@
  */
 package com.codenvy.auth.sso.client;
 
+import com.google.inject.ImplementedBy;
+
 import org.eclipse.che.commons.subject.Subject;
 
 /**
@@ -21,6 +23,7 @@ import org.eclipse.che.commons.subject.Subject;
  *
  * @author Sergii Kabashniuk
  */
+@ImplementedBy(HttpSsoServerClient.class)
 public interface ServerClient {
     /**
      * Get subject associated with given token for the given execution context(workspaceId, accountId)

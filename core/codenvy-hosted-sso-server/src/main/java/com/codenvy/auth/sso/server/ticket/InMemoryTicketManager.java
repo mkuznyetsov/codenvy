@@ -17,12 +17,11 @@ package com.codenvy.auth.sso.server.ticket;
 
 
 import com.codahale.metrics.annotation.Gauge;
-import org.eclipse.che.commons.lang.IoUtil;
-
 import com.codenvy.api.dao.authentication.AccessTicket;
 import com.codenvy.api.dao.authentication.TicketManager;
 import com.google.inject.Singleton;
 
+import org.eclipse.che.commons.lang.IoUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,7 +121,7 @@ public class InMemoryTicketManager implements TicketManager {
                     }
 
                 } catch (IOException e) {
-                    LOG.warn(e.getLocalizedMessage(), e);
+                    LOG.warn("{}. Not able to send logout request to {}", e.getLocalizedMessage(), ssoClient);
                 } finally {
                     if (conn != null) {
                         conn.disconnect();

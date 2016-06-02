@@ -19,6 +19,7 @@ import com.codenvy.im.artifacts.ArtifactFactory;
 import com.codenvy.im.artifacts.ArtifactNotFoundException;
 import com.codenvy.im.artifacts.ArtifactProperties;
 import com.codenvy.im.artifacts.CDECArtifact;
+import com.codenvy.im.artifacts.InstallManagerArtifact;
 import com.codenvy.im.event.Event;
 import com.codenvy.im.facade.IMCliFilteredFacade;
 import com.codenvy.im.facade.InstallationManagerFacade;
@@ -391,7 +392,7 @@ public class InstallationManagerService {
     @ApiOperation(value = "Gets Installation Manager Server configuration")
     public Response getInstallationManagerServerConfig() {
         try {
-            Map<String, String> properties = facade.getArtifactConfig(createArtifact(CDECArtifact.NAME));
+            Map<String, String> properties = facade.getArtifactConfig(createArtifact(InstallManagerArtifact.NAME));
             return Response.ok(new JsonStringMapImpl<>(properties)).build();
         } catch (Exception e) {
             return handleException(e);

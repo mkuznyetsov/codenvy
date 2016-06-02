@@ -122,7 +122,6 @@
                         <exclude>**/*.ico</exclude>
                         <exclude>**/*.ttf</exclude>
                         <exclude>**/*.eot</exclude>
-                        <exclude>**/*.svg</exclude>
                         <exclude>**/*.css</exclude>
                         <exclude>**/*.woff</exclude>
                     </excludes>
