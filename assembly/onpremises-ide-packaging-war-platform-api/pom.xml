@@ -20,7 +20,7 @@
     <parent>
         <artifactId>onpremises-ide-parent</artifactId>
         <groupId>com.codenvy.onpremises</groupId>
-        <version>4.3.0-RC1-SNAPSHOT</version>
+        <version>4.3.0-RC2-SNAPSHOT</version>
     </parent>
     <artifactId>onpremises-ide-packaging-war-platform-api</artifactId>
     <packaging>war</packaging>
@@ -112,6 +112,10 @@
         </dependency>
         <dependency>
             <groupId>com.codenvy.plugin</groupId>
+            <artifactId>codenvy-plugin-gitlab-factory-resolver</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.codenvy.plugin</groupId>
             <artifactId>codenvy-plugin-google-oauth2</artifactId>
         </dependency>
         <dependency>
@@ -121,6 +125,10 @@
         <dependency>
             <groupId>com.codenvy.plugin</groupId>
             <artifactId>codenvy-plugin-microsoft-vsts-webhooks</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.codenvy.plugin</groupId>
+            <artifactId>codenvy-plugin-url-factory</artifactId>
         </dependency>
         <dependency>
             <groupId>com.codenvy.plugin</groupId>
@@ -229,6 +237,10 @@
         <dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-machine-ext-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.che.plugin</groupId>
+            <artifactId>che-plugin-ssh-machine</artifactId>
         </dependency>
         <dependency>
             <groupId>org.everrest</groupId>
