@@ -28,7 +28,7 @@ auth "admin" "password"
 executeIMCommand "download" "codenvy" "${LATEST_CODENVY3_VERSION}"
 
 # put correct config into binaries
-BINARIES="/home/vagrant/codenvy-im-data/updates/codenvy/${LATEST_CODENVY3_VERSION}/codenvy-${LATEST_CODENVY3_VERSION}.zip"
+BINARIES="/home/vagrant/codenvy/updates/codenvy/${LATEST_CODENVY3_VERSION}/codenvy-${LATEST_CODENVY3_VERSION}.zip"
 executeSshCommand "rm -rf /tmp/codenvy"
 executeSshCommand "unzip ${BINARIES} -d /tmp/codenvy"
 

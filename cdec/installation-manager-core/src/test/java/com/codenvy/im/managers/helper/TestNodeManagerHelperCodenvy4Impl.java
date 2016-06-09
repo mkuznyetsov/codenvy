@@ -48,7 +48,6 @@ import static org.testng.Assert.assertTrue;
 
 /** @author Dmytro Nochevnov */
 public class TestNodeManagerHelperCodenvy4Impl extends BaseTest {
-    public static final String SYSTEM_USER_NAME = System.getProperty("user.name");
 
     @Mock
     private ConfigManager               mockConfigManager;

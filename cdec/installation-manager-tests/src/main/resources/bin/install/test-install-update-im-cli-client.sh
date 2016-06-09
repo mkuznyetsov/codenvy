@@ -23,14 +23,26 @@ printAndLog "TEST CASE: Install and update IM CLI client"
 
 vagrantUp ${SINGLE_NODE_VAGRANT_FILE}
 
-installImCliClient ${PREV_IM_CLI_CLIENT_VERSION}
+# install IM CLI 4.2.0 and restore default directory and $PATH settings in .bashrc
+installImCliClient ${PREV_IM_CLI_CLIENT_VERSION} --install-directory=codenvy-im
+executeSshCommand "mv ~/codenvy-im/cli ~/codenvy-im/codenvy-cli"
+executeSshCommand "sed -i 's|export CODENVY_IM_BASE=/home/vagrant/.*||' ~/.bashrc &> /dev/null"
+executeSshCommand "sed -i 's|\$CODENVY_IM_BASE/cli/bin|/home/vagrant/codenvy-im/codenvy-cli/bin|' ~/.bashrc &> /dev/null"
 
 # test auto-update at the start of executing some command
 executeIMCommand "im-version"
 validateExpectedString ".*This.CLI.client.was.out-dated.so.automatic.update.has.being.started\..It.will.be.finished.at.the.next.launch.*"
 
-validateInstalledImCliClientVersion ${LATEST_IM_CLI_CLIENT_VERSION}
+executeIMCommand "im-version"
 validateExpectedString ".*Installation.Manager.CLI.is.being.updated.\.\.\..*"
+validateExpectedString ".*Files.from.the.'/home/vagrant/codenvy-im-data'.directory.are.being.moved.into.the.'/home/vagrant/codenvy-im'.directory\.\..*"
+executeSshCommand --valid-exit-code=1 "test -d /home/vagrant/codenvy-im-data"
+executeSshCommand "test -d /home/vagrant/codenvy-im/updates"
+
+validateInstalledImCliClientVersion
+
+executeIMCommand "config" "--im-cli"
+validateExpectedString ".*backup_directory=/home/vagrant/codenvy-im/backups.*base_directory=/home/vagrant/codenvy-im.*download.directory=/home/vagrant/codenvy-im/updates.*report_directory=/home/vagrant/codenvy-im/reports.*saas.server.url=$SAAS_SERVER.*update.server.url=$UPDATE_SERVER.*"
 
 printAndLog "RESULT: PASSED"
 

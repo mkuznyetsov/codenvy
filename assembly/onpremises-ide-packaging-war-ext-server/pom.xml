@@ -47,6 +47,10 @@
             <artifactId>codenvy-hosted-workspace-activity-agent</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.codenvy.hosted-infrastructure</groupId>
+            <artifactId>wsagent-codenvy</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.codenvy.plugin</groupId>
             <artifactId>codenvy-plugin-bitbucket-ext-bitbucket</artifactId>
         </dependency>

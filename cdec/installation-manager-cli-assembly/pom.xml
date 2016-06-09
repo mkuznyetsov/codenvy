@@ -110,19 +110,30 @@
                                 </replace>
                                 <replace file="${project.build.directory}/codenvy-cli-${project.version}/bin/codenvy">
                                     <replacetoken>main "$@"</replacetoken>
-                                    <replacevalue># update installation manager 
-cd ~/codenvy-im
+                                    <replacevalue># update installation manager
+# migration to 4.3.x
+if [[ -z ${CODENVY_IM_BASE} ]]; then
+    CURRENT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" &amp;&amp; pwd )
+    CODENVY_IM_BASE=$(readlink -f "$CURRENT_DIR/../..")
+    export CODENVY_IM_BASE
 
-if [ -f "update-im-cli" ]; then
-   echo "Installation Manager CLI is being updated ..."
-   bash update-im-cli $@
-   exit
+    if [[ -d ~/codenvy-im-data ]]; then
+        echo "Files from the '$HOME/codenvy-im-data' directory are being moved into the '$CODENVY_IM_BASE' directory..."
+        cp -rn ~/codenvy-im-data/* ${CODENVY_IM_BASE}/
+        if [[ $? == 0 ]]; then
+            rm -rf ~/codenvy-im-data
+        fi
+    fi
 fi
 
-cd - &amp;&gt;/dev/null
+if [ -f "${CODENVY_IM_BASE}/update-im-cli" ]; then
+    echo "Installation Manager CLI is being updated ..."
+    bash ${CODENVY_IM_BASE}/update-im-cli $@
+    exit
+fi
 
 if [ -f ~/.bashrc ]; then
-   source ~/.bashrc
+    source ~/.bashrc
 fi
 
 main "$@"</replacevalue>

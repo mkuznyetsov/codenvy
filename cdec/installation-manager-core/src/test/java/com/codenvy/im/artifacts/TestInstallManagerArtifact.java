@@ -14,6 +14,7 @@
  */
 package com.codenvy.im.artifacts;
 
+import com.codenvy.im.BaseTest;
 import com.codenvy.im.commands.Command;
 import com.codenvy.im.managers.InstallOptions;
 import com.codenvy.im.utils.HttpTransport;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.codenvy.im.artifacts.ArtifactFactory.createArtifact;
+import static java.lang.String.format;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -37,7 +39,7 @@ import static org.testng.Assert.assertTrue;
  * @author Dmytro Nochevnov
  */
 public class TestInstallManagerArtifact {
-    public static final Path PATH_TO_BINARIES = Paths.get("/parent/child");
+    public static final Path PATH_TO_BINARIES = Paths.get("/parent/im-update.tar.gz");
     private InstallManagerArtifact imArtifact;
     private Path testExecutionPath;
 
@@ -65,8 +67,6 @@ public class TestInstallManagerArtifact {
     @Test(expectedExceptions = UnsupportedOperationException.class)
     public void testGeInstallCommand() throws Exception {
         InstallOptions options = new InstallOptions();
-        options.setCliUserHomeDir("/home/dummy-user");
-
         options.setStep(0);
         imArtifact.getInstallCommand(Version.valueOf("1.0.0"), PATH_TO_BINARIES, options);
     }
@@ -74,22 +74,47 @@ public class TestInstallManagerArtifact {
     @Test
     public void testGetUpdateCommand() throws Exception {
         InstallOptions options = new InstallOptions();
-        options.setCliUserHomeDir("/home/dummy-user");
 
         options.setStep(0);
         Command command = imArtifact.getUpdateCommand(Version.valueOf("1.0.0"), PATH_TO_BINARIES, options);
-        assertEquals(command.toString(), "[{'command'='sh -c \" echo '#!/bin/bash \n"
-                                         + "rm -rf /home/dummy-user/codenvy-im/codenvy-cli/bin/* \n"
-                                         + "find /home/dummy-user/codenvy-im/codenvy-cli/* ! -name 'bin' -type d -exec rm -rf {} + \n"
-                                         + "tar -xzf /home/dummy-user/codenvy-im/child -C /home/dummy-user/codenvy-im/codenvy-cli/ \n"
-                                         + "chmod +x /home/dummy-user/codenvy-im/codenvy-cli/bin/* \n"
-                                         + "sed -i \"2iJAVA_HOME=/home/dummy-user/codenvy-im/jre\" /home/dummy-user/codenvy-im/codenvy-cli/bin/codenvy \n"
-                                         + "rm -f /home/dummy-user/codenvy-im/update-im-cli \n"
-                                         + "rm -f /home/dummy-user/codenvy-im/child \n"
-                                         + "/home/dummy-user/codenvy-im/codenvy-cli/bin/codenvy \\$@' > /home/dummy-user/codenvy-im/update-im-cli\"', "
-                                         + "'agent'='LocalAgent'}, "
-                                         + "{'command'='chmod 775 /home/dummy-user/codenvy-im/update-im-cli', 'agent'='LocalAgent'}, "
-                                         + "{'command'='cp /parent/child /home/dummy-user/codenvy-im/child', 'agent'='LocalAgent'}]");
+        assertEquals(command.toString(), format("[{'command'='cat >> /home/%1$s/codenvy/update-im-cli << EOF\n"
+                                                + "#!/bin/bash\n"
+                                                + "\n"
+                                                + "moveCliDir=false\n"
+                                                + "if [[ -d /home/%1$s/codenvy/codenvy-cli ]]; then\n"
+                                                + "    moveCliDir=true\n"
+                                                + "\n"
+                                                + "    if [[ \\$PWD =~ /home/%1$s/codenvy/codenvy-cli ]]; then\n"
+                                                + "        echo \"Current directory '\\$PWD' is being removed...\"\n"
+                                                + "        cd /home/%1$s/codenvy\n"
+                                                + "    fi\n"
+                                                + "\n"
+                                                + "    rm -rf /home/%1$s/codenvy/codenvy-cli\n"
+                                                + "\n"
+                                                + "    if [[ $? == 0 ]]; then\n"
+                                                + "        mkdir /home/%1$s/codenvy/cli\n"
+                                                + "        sed -i \"s|codenvy-cli/bin|cli/bin|\" ~/.bashrc &> /dev/null\n"
+                                                + "        source ~/.bashrc\n"
+                                                + "    fi\n"
+                                                + "else\n"
+                                                + "    rm -rf /home/%1$s/codenvy/cli/bin/* \n"
+                                                + "    find /home/%1$s/codenvy/cli/* ! -name 'bin' -type d -exec rm -rf {} + \n"
+                                                + "fi\n"
+                                                + "\n"
+                                                + "tar -xzf /home/%1$s/codenvy/im-update.tar.gz -C /home/%1$s/codenvy/cli/ \n"
+                                                + "chmod +x /home/%1$s/codenvy/cli/bin/* \n"
+                                                + "sed -i \"2iJAVA_HOME=/home/%1$s/codenvy/jre\" /home/%1$s/codenvy/cli/bin/codenvy \n"
+                                                + "rm -f /home/%1$s/codenvy/update-im-cli \n"
+                                                + "rm -f /home/%1$s/codenvy/im-update.tar.gz \n"
+                                                + "/home/%1$s/codenvy/cli/bin/codenvy \\$@\n"
+                                                + "\n"
+                                                + "if [[ \\$moveCliDir == true ]]; then\n"
+                                                + "    echo \"Please, execute 'source ~/.bashrc' command to apply an update of installation manager CLI client.\"\n"
+                                                + "fi\n"
+                                                + "EOF', 'agent'='LocalAgent'}, "
+                                                + "{'command'='chmod 775 /home/%1$s/codenvy/update-im-cli', 'agent'='LocalAgent'}, "
+                                                + "{'command'='cp /parent/im-update.tar.gz /home/%1$s/codenvy/im-update.tar.gz', 'agent'='LocalAgent'}]",
+                                                BaseTest.SYSTEM_USER_NAME));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class,
@@ -141,9 +166,12 @@ public class TestInstallManagerArtifact {
         Artifact imArtifact = createArtifact(InstallManagerArtifact.NAME);
 
         Map<String, String> m = imArtifact.getConfig();
-        assertEquals(m.size(), 3);
-        assertEquals(m.toString(), "{download_directory=target/updates, "
-                                   + "update_server_url=http://update.endpoint, "
-                                   + "saas_server_url=http://saas.api.endpoint}");
+        assertEquals(m.size(), 6);
+        assertEquals(m.toString(), format("{download_directory=target/updates, "
+                                          + "update_server_url=http://update.endpoint, "
+                                          + "saas_server_url=http://saas.api.endpoint, "
+                                          + "base_directory=/home/%s/codenvy, "
+                                          + "backup_directory=target/backups, "
+                                          + "report_directory=target/reports}", BaseTest.SYSTEM_USER_NAME));
     }
 }

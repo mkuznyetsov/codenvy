@@ -24,6 +24,7 @@ import com.codenvy.im.managers.ConfigManager;
 import com.codenvy.im.managers.InstallOptions;
 import com.codenvy.im.managers.InstallType;
 import com.codenvy.im.utils.HttpTransport;
+import com.codenvy.im.utils.InjectorBootstrap;
 import com.codenvy.im.utils.Version;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
@@ -48,25 +49,29 @@ import static java.lang.String.format;
 
 /**
  * @author Anatoliy Bazko
+ * @author Dmytro Nochevnov
  */
 @Singleton
 public class InstallManagerArtifact extends AbstractArtifact {
     public static final String NAME = "installation-manager-cli";
 
-    private static final String CODENVY_CLI_DIR_NAME   = "codenvy-cli";
+    private static final String CODENVY_CLI_DIR_NAME   = "cli";
     private static final String UPDATE_CLI_SCRIPT_NAME = "update-im-cli";
-    private static final String IM_ROOT_DIRECTORY_NAME = "codenvy-im";
-    private static final String RELATIVE_PATH_TO_JAVA  = IM_ROOT_DIRECTORY_NAME + "/jre";
+    private static final String RELATIVE_PATH_TO_JAVA  = "jre";
+
     private String saasServerEndpoint;
+    private Path imBaseDir;
 
     @Inject
-    public InstallManagerArtifact(@Named("installation-manager.update_server_endpoint") String updateServerEndpoint,
+    public InstallManagerArtifact(@Named("installation-manager.base_dir") String imBaseDir,
+                                  @Named("installation-manager.update_server_endpoint") String updateEndpoint,
                                   @Named("installation-manager.download_dir") String downloadDir,
                                   @Named("saas.api.endpoint") String saasApiEndpoint,
                                   HttpTransport transport,
                                   ConfigManager configManager) {
-        super(NAME, updateServerEndpoint, downloadDir, transport, configManager);
+        super(NAME, updateEndpoint, downloadDir, transport, configManager);
         this.saasServerEndpoint = saasApiEndpoint;
+        this.imBaseDir = Paths.get(imBaseDir);
     }
 
     /** {@inheritDoc} */
@@ -118,39 +123,57 @@ public class InstallManagerArtifact extends AbstractArtifact {
         final Agent syncAgent = new LocalAgent();
         switch (step) {
             case 0:
-                final Path cliClientDir = Paths.get(installOptions.getCliUserHomeDir())
-                                               .resolve(IM_ROOT_DIRECTORY_NAME)
-                                               .resolve(CODENVY_CLI_DIR_NAME);
+                final Path cliClientDir = imBaseDir.resolve(CODENVY_CLI_DIR_NAME);
 
-                final Path updateCliScript = Paths.get(installOptions.getCliUserHomeDir())
-                                                  .resolve(IM_ROOT_DIRECTORY_NAME)
-                                                  .resolve(UPDATE_CLI_SCRIPT_NAME);
+                final Path updateCliScript = imBaseDir.resolve(UPDATE_CLI_SCRIPT_NAME);
 
-                final Path newPlacementOfUpdateBinaries = Paths.get(installOptions.getCliUserHomeDir())
-                                                               .resolve(IM_ROOT_DIRECTORY_NAME)
-                                                               .resolve(pathToBinaries.getFileName());
+                final Path newPlacementOfUpdateBinaries = imBaseDir.resolve(pathToBinaries.getFileName());
 
-                final Path absolutePathToJava = Paths.get(installOptions.getCliUserHomeDir())
-                                                     .resolve(RELATIVE_PATH_TO_JAVA);
+                final Path absolutePathToJava = imBaseDir.resolve(RELATIVE_PATH_TO_JAVA);
 
 
-                final String contentOfUpdateCliScript = format("#!/bin/bash \n" +
-                                                               "rm -rf %1$s/bin/* \n" +          // remove content of "bin" dir of cli client
-                                                               "find %1$s/* ! -name 'bin' -type d -exec rm -rf {} + \n" +  // remove all content of cli client except "bin" dir
-                                                               "tar -xzf %2$s -C %1$s/ \n" +  // unpack update into the cli client dir
-                                                               "chmod +x %1$s/bin/* \n" +    // set permissions to execute CLI client scripts
-                                                               "sed -i \"2iJAVA_HOME=%3$s\" %1$s/bin/codenvy \n" +
-                                                               // setup java home path
-                                                               "rm -f %4$s \n" +             // remove update script
-                                                               "rm -f %2$s \n" +             // remove update binaries
-                                                               "%1$s/bin/codenvy \\$@",      // run script from updated directory
+                final String contentOfUpdateCliScript = format("#!/bin/bash\n"
+                                                               + "\n"
+                                                               + "moveCliDir=false\n"
+                                                               + "if [[ -d %5$s/codenvy-cli ]]; then\n"
+                                                               + "    moveCliDir=true\n"
+                                                               + "\n"
+                                                               + "    if [[ \\$PWD =~ %5$s/codenvy-cli ]]; then\n"
+                                                               + "        echo \"Current directory '\\$PWD' is being removed...\"\n"
+                                                               + "        cd %5$s\n"
+                                                               + "    fi\n"
+                                                               + "\n"
+                                                               + "    rm -rf %5$s/codenvy-cli\n"
+                                                               + "\n"
+                                                               + "    if [[ $? == 0 ]]; then\n"
+                                                               + "        mkdir %5$s/cli\n"
+                                                               + "        sed -i \"s|codenvy-cli/bin|cli/bin|\" ~/.bashrc &> /dev/null\n"   // fix path to IM CLI scripts
+                                                               + "        source ~/.bashrc\n"                                               // aply changes in path
+                                                               + "    fi\n"
+                                                               + "else\n"
+                                                               + "    rm -rf %1$s/bin/* \n"                                  // remove content of "bin" dir of cli client
+                                                               + "    find %1$s/* ! -name 'bin' -type d -exec rm -rf {} + \n"   // remove all content of cli client except "bin" dir
+                                                               + "fi\n"
+                                                               + "\n"
+                                                               + "tar -xzf %2$s -C %1$s/ \n"                                    // unpack update into the cli client dir
+                                                               + "chmod +x %1$s/bin/* \n"                                       // set permissions to execute CLI client scripts
+                                                               + "sed -i \"2iJAVA_HOME=%3$s\" %1$s/bin/codenvy \n"              // setup java home path
+                                                               + "rm -f %4$s \n"                                                // remove update script
+                                                               + "rm -f %2$s \n"                                                // remove binaries of update
+                                                               + "%1$s/bin/codenvy \\$@\n"                                      // run script from updated directory
+                                                               + "\n"
+                                                               + "if [[ \\$moveCliDir == true ]]; then\n"
+                                                               + "    echo \"Please, execute 'source ~/.bashrc' command to apply an update of installation manager CLI client.\"\n"
+                                                               + "fi"
+                                                               + "",
                                                                cliClientDir.toAbsolutePath(),
                                                                newPlacementOfUpdateBinaries,
                                                                absolutePathToJava,
-                                                               updateCliScript.toAbsolutePath());
+                                                               updateCliScript.toAbsolutePath(),
+                                                               imBaseDir.toAbsolutePath());
 
                 return new MacroCommand(ImmutableList.<Command>of(
-                    new SimpleCommand(format("sh -c \" echo '%s' > %s\"", contentOfUpdateCliScript, updateCliScript.toAbsolutePath()),
+                    new SimpleCommand(format("cat >> %s << EOF\n%s\nEOF", updateCliScript.toAbsolutePath(), contentOfUpdateCliScript),
                                       syncAgent, "Create script to update cli client"),
 
                     new SimpleCommand(format("chmod 775 %s", updateCliScript.toAbsolutePath()),
@@ -212,6 +235,9 @@ public class InstallManagerArtifact extends AbstractArtifact {
             put("download_directory", downloadDir.toString());
             put("update_server_url", extractServerUrl(updateServerEndpoint));
             put("saas_server_url", extractServerUrl(saasServerEndpoint));
+            put("base_directory", imBaseDir.toString());
+            put("backup_directory", InjectorBootstrap.getProperty("installation-manager.backup_dir"));
+            put("report_directory", InjectorBootstrap.getProperty("installation-manager.report_dir"));
         }};
     }
 }

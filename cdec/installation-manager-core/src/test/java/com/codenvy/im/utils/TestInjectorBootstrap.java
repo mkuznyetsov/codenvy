@@ -51,7 +51,7 @@ public class TestInjectorBootstrap {
     public void testInjector() {
         Injector injector = InjectorBootstrap.INJECTOR;
         Map<Key<?>, Binding<?>> bindings = injector.getBindings();
-        assertTrue(bindings.size() >= 19, "Actual bindings: " + bindings.toString());
+        assertTrue(bindings.size() >= 20, "Actual bindings: " + bindings.toString());
     }
 
     @Test(dataProvider = "testProperties")
@@ -62,6 +62,7 @@ public class TestInjectorBootstrap {
     @DataProvider(name = "testProperties")
     public Object[][] getTestProperties() {
         return new Object[][]{
+            {"installation-manager.base_dir", BaseTest.BASE_DIR},
             {"installation-manager.download_dir", BaseTest.DOWNLOAD_DIR},
             {"installation-manager.backup_dir", "target/backups"},
             {"installation-manager.storage_dir", "target/storage"},
@@ -82,8 +83,9 @@ public class TestInjectorBootstrap {
         InjectorBootstrap.overrideDefaultProperties(newPropertiesDirectory);
 
         assertEquals(InjectorBootstrap.boundProperties.get("installation-manager.download_dir"), "target/updates");
-        assertEquals(InjectorBootstrap.boundProperties.get("installation-manager.update_server_endpoint"),
-                     format("%s/update/endpoint", System.getProperty("user.home"))); // test InjectorBootstrap...replaceEnvVariables() method
+        assertEquals(InjectorBootstrap.boundProperties.get("installation-manager.update_server_endpoint"), "http://update2.endpoint");
+        assertEquals(InjectorBootstrap.boundProperties.get("installation-manager.assembly_properties"),
+                     format("%s/assembly.properties", System.getProperty("user.home"))); // test InjectorBootstrap...replaceEnvVariables() method
     }
 
 }

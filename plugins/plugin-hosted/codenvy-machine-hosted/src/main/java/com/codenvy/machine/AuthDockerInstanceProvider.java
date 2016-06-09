@@ -42,6 +42,7 @@ import java.util.Set;
  * that contains the specific machine token instead of user token.
  *
  * @author Anton Korneta
+ * @author Roman Iuvshyn
  */
 public class AuthDockerInstanceProvider extends DockerInstanceProvider {
     private final MachineTokenRegistry tokenRegistry;
@@ -65,6 +66,7 @@ public class AuthDockerInstanceProvider extends DockerInstanceProvider {
                                       @Named("machine.docker.dev_machine.machine_env") Set<String> devMachineEnvVariables,
                                       @Named("machine.docker.machine_env") Set<String> allMachinesEnvVariables,
                                       @Named("machine.docker.snapshot_use_registry") boolean snapshotUseRegistry,
+                                      @Named("machine.docker.memory_swap_multiplier") double memorySwapMultiplier,
                                       MachineTokenRegistry tokenRegistry) throws IOException {
         super(docker,
               dockerConnectorConfiguration,
@@ -83,7 +85,8 @@ public class AuthDockerInstanceProvider extends DockerInstanceProvider {
               privilegeMode,
               devMachineEnvVariables,
               allMachinesEnvVariables,
-              snapshotUseRegistry);
+              snapshotUseRegistry,
+              memorySwapMultiplier);
         this.tokenRegistry = tokenRegistry;
     }
 

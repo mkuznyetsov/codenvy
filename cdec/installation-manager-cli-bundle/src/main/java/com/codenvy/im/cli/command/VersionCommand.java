@@ -28,6 +28,7 @@ import org.eclipse.che.commons.json.JsonParseException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 import static com.codenvy.im.utils.Commons.toJson;
 
@@ -119,7 +120,8 @@ public class VersionCommand extends AbstractIMCommand {
             return String.format(NEW_STABLE_VERSION_MESSAGE, suffix);
         }
 
-        if (info.getLabel().equals(VersionLabel.STABLE)) {
+        VersionLabel label = info.getLabel();
+        if (Objects.nonNull(label) && label.equals(VersionLabel.STABLE)) {
             return LATEST_STABLE_VERSION_MESSAGE;
         }
 

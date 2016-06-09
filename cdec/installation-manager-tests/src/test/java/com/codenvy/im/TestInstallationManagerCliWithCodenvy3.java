@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
  *
  * @author Anatoliy Bazko
  */
-public class TestInstallationManagerCliWithCodenvy3 extends BaseTest{
+public class TestInstallationManagerCliWithCodenvy3 extends BaseIntegrationTest {
 
     @Test
     public void testInstallMultiNodeAndChangeConfig() throws Exception {

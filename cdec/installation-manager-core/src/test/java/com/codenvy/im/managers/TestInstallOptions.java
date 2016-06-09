@@ -55,13 +55,13 @@ public class TestInstallOptions {
     }
 
     @Test(dataProvider = "testEqualsAndHashCodeData")
-    public void testEqualsAndHashCode(Map<String, String> properties1, int step1, InstallType type1, String cliUserHomeDir1,
-                                      Map<String, String> properties2, int step2, InstallType type2, String cliUserHomeDir2,
+    public void testEqualsAndHashCode(Map<String, String> properties1, int step1, InstallType type1,
+                                      Map<String, String> properties2, int step2, InstallType type2,
                                       boolean expectedEquality) throws Exception {
         InstallOptions options1 =
-                new InstallOptions().setStep(step1).setInstallType(type1).setConfigProperties(properties1).setCliUserHomeDir(cliUserHomeDir1);
+                new InstallOptions().setStep(step1).setInstallType(type1).setConfigProperties(properties1);
         InstallOptions options2 =
-                new InstallOptions().setStep(step2).setInstallType(type2).setConfigProperties(properties2).setCliUserHomeDir(cliUserHomeDir2);
+                new InstallOptions().setStep(step2).setInstallType(type2).setConfigProperties(properties2);
 
         assertEquals(options1.equals(options2), expectedEquality);
         options1.hashCode();
@@ -70,45 +70,36 @@ public class TestInstallOptions {
     @DataProvider(name = "testEqualsAndHashCodeData")
     public Object[][] TestEqualsAndHashCodeData() {
         return new Object[][]{
-                {null, 0, null, null,
-                 null, 0, null, null,
+                {null, 0, null,
+                 null, 0, null,
                  true},
 
-                {ImmutableMap.of("1", "2"), 1, InstallType.SINGLE_SERVER, "path1",
-                 ImmutableMap.of("1", "2"), 1, InstallType.SINGLE_SERVER, "path1",
+                {ImmutableMap.of("1", "2"), 1, InstallType.SINGLE_SERVER,
+                 ImmutableMap.of("1", "2"), 1, InstallType.SINGLE_SERVER,
                  true},
 
-                {ImmutableMap.of("1", "2"), 0, null, null,
-                 null, 0, null, null,
+                {ImmutableMap.of("1", "2"), 0, null,
+                 null, 0, null,
                  false},
-                {ImmutableMap.of("1", "2"), 0, null, null,
-                 ImmutableMap.of("3", "4"), 0, null, null,
+                {ImmutableMap.of("1", "2"), 0, null,
+                 ImmutableMap.of("3", "4"), 0, null,
                  false},
-                {null, 0, null, null,
-                 ImmutableMap.of("3", "4"), 0, null, null,
-                 false},
-
-                {ImmutableMap.of("1", "2"), 1, null, null,
-                 ImmutableMap.of("1", "2"), 0, null, null,
-                 false},
-                {ImmutableMap.of("1", "2"), 0, InstallType.SINGLE_SERVER, null,
-                 ImmutableMap.of("1", "2"), 0, null, null,
-                 false},
-                {ImmutableMap.of("1", "2"), 0, InstallType.SINGLE_SERVER, null,
-                 ImmutableMap.of("1", "2"), 0, InstallType.MULTI_SERVER, null,
+                {null, 0, null,
+                 ImmutableMap.of("3", "4"), 0, null,
                  false},
 
-                {ImmutableMap.of("1", "2"), 0, null, null,
-                 ImmutableMap.of("1", "2"), 0, InstallType.MULTI_SERVER, null,
+                {ImmutableMap.of("1", "2"), 1, null,
+                 ImmutableMap.of("1", "2"), 0, null,
                  false},
-                {ImmutableMap.of("1", "2"), 0, InstallType.SINGLE_SERVER, "",
-                 ImmutableMap.of("1", "2"), 0, InstallType.SINGLE_SERVER, null,
+                {ImmutableMap.of("1", "2"), 0, InstallType.SINGLE_SERVER,
+                 ImmutableMap.of("1", "2"), 0, null,
                  false},
-                {ImmutableMap.of("1", "2"), 0, InstallType.SINGLE_SERVER, "path1",
-                 ImmutableMap.of("1", "2"), 0, InstallType.SINGLE_SERVER, "path2",
+                {ImmutableMap.of("1", "2"), 0, InstallType.SINGLE_SERVER,
+                 ImmutableMap.of("1", "2"), 0, InstallType.MULTI_SERVER,
                  false},
-                {ImmutableMap.of("1", "2"), 0, InstallType.SINGLE_SERVER, null,
-                 ImmutableMap.of("1", "2"), 0, InstallType.SINGLE_SERVER, "path2",
+
+                {ImmutableMap.of("1", "2"), 0, null,
+                 ImmutableMap.of("1", "2"), 0, InstallType.MULTI_SERVER,
                  false},
         };
     }

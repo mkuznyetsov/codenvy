@@ -43,7 +43,6 @@ import static org.testng.Assert.assertFalse;
  */
 public class TestCDECArtifactGetInstalledVersion extends BaseTest {
     public static final Version TEST_VERSION = Version.valueOf(TEST_VERSION_STR);
-    public static final String SYSTEM_USER_NAME = System.getProperty("user.name");
 
     private CDECArtifact       spyCdecArtifact;
     @Mock

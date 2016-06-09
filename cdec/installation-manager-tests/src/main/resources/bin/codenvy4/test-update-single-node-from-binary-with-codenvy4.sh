@@ -27,7 +27,7 @@ authWithoutRealmAndServerDns "newadmin" "new-password"
 
 executeIMCommand "download" "codenvy" "${LATEST_CODENVY4_VERSION}"
 
-BINARIES="/home/vagrant/codenvy-im-data/updates/codenvy/${LATEST_CODENVY4_VERSION}/codenvy-${LATEST_CODENVY4_VERSION}.zip"
+BINARIES="/home/vagrant/codenvy/updates/codenvy/${LATEST_CODENVY4_VERSION}/codenvy-${LATEST_CODENVY4_VERSION}.zip"
 
 # install from local folder
 executeIMCommand "install" "--binaries=$BINARIES" "codenvy" "${LATEST_CODENVY4_VERSION}"

@@ -183,7 +183,6 @@ public class TestDownloadCommand extends AbstractTestCommand {
             .when(spyCommand.facade).getDownloadProgress();
 
         InstallOptions installOptions = new InstallOptions();
-        installOptions.setCliUserHomeDir(System.getProperty("user.home"));
         installOptions.setConfigProperties(Collections.EMPTY_MAP);
         installOptions.setInstallType(InstallType.SINGLE_SERVER);
         installOptions.setStep(0);
@@ -267,7 +266,6 @@ public class TestDownloadCommand extends AbstractTestCommand {
             .when(spyCommand.facade).getDownloadProgress();
 
         InstallOptions installOptions = new InstallOptions();
-        installOptions.setCliUserHomeDir(System.getProperty("user.home"));
         installOptions.setConfigProperties(Collections.EMPTY_MAP);
         installOptions.setInstallType(InstallType.SINGLE_SERVER);
         installOptions.setStep(0);

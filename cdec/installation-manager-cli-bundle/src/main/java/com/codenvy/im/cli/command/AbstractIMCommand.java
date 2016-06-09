@@ -125,7 +125,6 @@ public abstract class AbstractIMCommand extends AbsCommand {
 
             // update IM CLI client
             InstallOptions installOptions = new InstallOptions();
-            installOptions.setCliUserHomeDir(System.getProperty("user.home"));
             installOptions.setConfigProperties(Collections.emptyMap());
             installOptions.setInstallType(InstallType.SINGLE_SERVER);
             installOptions.setStep(0);

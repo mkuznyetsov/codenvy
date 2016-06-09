@@ -30,9 +30,6 @@ public class InstallOptions {
     @ApiModelProperty(required = true)
     private Map<String, String> configProperties;
 
-    @ApiModelProperty(notes = "It is needed only for updating installation-manager artifact.")
-    private String cliUserHomeDir;
-
     /** Getter for {@link #installType} */
     public InstallType getInstallType() {
         return installType;
@@ -66,15 +63,6 @@ public class InstallOptions {
         return this;
     }
 
-    public String getCliUserHomeDir() {
-        return cliUserHomeDir;
-    }
-
-    public InstallOptions setCliUserHomeDir(String cliUserHomeDir) {
-        this.cliUserHomeDir = cliUserHomeDir;
-        return this;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -98,10 +86,6 @@ public class InstallOptions {
             return false;
         }
 
-        if (cliUserHomeDir != null ? !cliUserHomeDir.equals(that.cliUserHomeDir) : that.cliUserHomeDir != null) {
-            return false;
-        }
-
         return true;
     }
 
@@ -110,7 +94,7 @@ public class InstallOptions {
         int result = step;
         result = 31 * result + (installType != null ? installType.hashCode() : 0);
         result = 31 * result + (configProperties != null ? configProperties.hashCode() : 0);
-        result = 31 * result + (cliUserHomeDir != null ? cliUserHomeDir.hashCode() : 0);
+
         return result;
     }
 }

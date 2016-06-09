@@ -66,7 +66,7 @@ vagrantDestroy
 vagrantUp ${MULTI_NODE_VAGRANT_FILE}
 installCodenvy ${LATEST_CODENVY3_VERSION}
 validateInstalledCodenvyVersion
-executeSshCommand "mkdir /home/vagrant/codenvy-im-data/backups"
+executeSshCommand "mkdir /home/vagrant/codenvy/backups"
 executeSshCommand "cp /vagrant/backup.tar.gz ${BACKUP}"
 executeIMCommand "restore" ${BACKUP}
 

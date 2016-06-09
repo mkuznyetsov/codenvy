@@ -34,6 +34,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.String.format;
 import static java.nio.file.Files.delete;
 import static java.nio.file.Files.exists;
 import static org.mockito.Mockito.doReturn;
@@ -43,9 +44,11 @@ import static org.mockito.Mockito.when;
  * @author Anatoliy Bazko
  */
 public class BaseTest {
+    public static final String BASE_DIR            = format("%s/codenvy", System.getProperty("user.home"));
     public static final String PUPPET_BASE_DIR     = "target/puppet";
     public static final String TEST_DIR            = "target";
     public static final String DOWNLOAD_DIR        = "target/updates";
+    public static final String CODENVY_IM_BASE_DIR = "target";
     public static final String UPDATE_API_ENDPOINT = "http://update.endpoint";
     public static final String ASSEMBLY_PROPERTIES = "target/assembly.properties";
     public static final String API_ENDPOINT        = "http://api.endpoint";
@@ -55,6 +58,7 @@ public class BaseTest {
     public static final String INITIAL_OS_VERSION  = OSUtils.VERSION;
     public static final String HOSTNAME            = "hostname";
     public static final String UNSUPPORTED_VERSION = "1.0.0";
+    public static final String SYSTEM_USER_NAME    = System.getProperty("user.name");
 
     @BeforeMethod
     public void clear() throws Exception {

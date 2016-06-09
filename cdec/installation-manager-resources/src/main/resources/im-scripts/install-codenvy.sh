@@ -20,6 +20,7 @@
 # --docker-registry-mirror=<URL>
 # --http-proxy-for-codenvy-workspaces=<HTTP PROXY URL>
 # --https-proxy-for-codenvy-workspaces=<HTTPS PROXY URL>
+# --no-proxy-for-codenvy-workspaces=<CODENVY NO_PROXY PROPERTY>
 # --config=<PATH/URL TO CUSTOM CODENVY CONFIG>
 
 trap cleanUp EXIT
@@ -27,14 +28,13 @@ trap cleanUp EXIT
 unset HOST_NAME
 unset SYSTEM_ADMIN_NAME
 unset SYSTEM_ADMIN_PASSWORD
+unset CODENVY_NO_PROXY
 
 JDK_URL=http://download.oracle.com/otn-pub/java/jdk/8u45-b14/jdk-8u45-linux-x64.tar.gz
 JRE_URL=http://download.oracle.com/otn-pub/java/jdk/8u45-b14/jre-8u45-linux-x64.tar.gz
 
 PUPPET_AGENT_PACKAGE=puppet-3.8.6-1.el7.noarch
 PUPPET_SERVER_PACKAGE=puppet-server-3.8.6-1.el7.noarch
-
-INSTALL_DIRECTORY=$PWD
 
 EXTERNAL_DEPENDENCIES=("https://codenvy.com||0"
                        "https://install.codenvycorp.com||0"
@@ -107,20 +107,20 @@ validateExitCode() {
         pauseFooterUpdater
         pauseDownloadProgressUpdater
         println
-        println $(printError "Unexpected error occurred. See install.log for more details")
+        println $(printError "Unexpected error occurred. See ${INSTALL_LOG} for more details")
         exit ${exitCode}
     fi
 }
 
 setRunOptions() {
-    DIR="${HOME}/codenvy-im"
     ARTIFACT="codenvy"
     CODENVY_TYPE="single"
     IM_CLI=false
     SILENT=false
     SUPPRESS=false
     LICENSE_ACCEPTED=false
-    CONFIG="codenvy.properties"
+    INSTALL_DIR=./codenvy
+
     for var in "$@"; do
         if [[ "$var" == "--multi" ]]; then
             CODENVY_TYPE="multi"
@@ -151,7 +151,7 @@ setRunOptions() {
             LICENSE_ACCEPTED=true
 
         elif [[ "$var" =~ --install-directory=.* ]]; then
-            INSTALL_DIRECTORY=$(echo "$var" | sed -e "s/--install-directory=//g")
+            INSTALL_DIR=$(echo "$var" | sed -e "s/--install-directory=//g")
 
         elif [[ "$var" =~ --http-proxy=.* ]]; then
             HTTP_PROXY=$(echo "$var" | sed -e "s/--http-proxy=//g")
@@ -173,6 +173,9 @@ setRunOptions() {
             HTTP_PROXY_FOR_CODENVY_WORKSPACES=$(echo "$var" | sed -e "s/--http-proxy-for-codenvy-workspaces=//g")
         elif [[ "$var" =~ --https-proxy-for-codenvy-workspaces=.* ]]; then
             HTTPS_PROXY_FOR_CODENVY_WORKSPACES=$(echo "$var" | sed -e "s/--https-proxy-for-codenvy-workspaces=//g")
+
+        elif [[ "$var" =~ --no-proxy-for-codenvy-workspaces=.* ]]; then
+            CODENVY_NO_PROXY=$(echo "$var" | sed -e "s/--no-proxy-for-codenvy-workspaces=//g")
 
         elif [[ "$var" =~ --config=.* ]]; then
             CUSTOM_CONFIG=$(echo "$var" | sed -e "s/--config=//g")
@@ -203,6 +206,12 @@ setRunOptions() {
     if [[ "${CODENVY_TYPE}" == "single" ]] && [[ ! -z "${HOST_NAME}" ]] && [[ ! -z "${SYSTEM_ADMIN_PASSWORD}" ]] && [[ ! -z "${SYSTEM_ADMIN_NAME}" ]]; then
         SUPPRESS=true
     fi
+
+    mkdir --parents "${INSTALL_DIR}"
+    INSTALL_DIR=$(readlink -f $INSTALL_DIR)
+
+    INSTALL_LOG="$INSTALL_DIR/install.log"
+    CONFIG="$INSTALL_DIR/codenvy.properties"
 }
 
 # $1 - url
@@ -240,9 +249,6 @@ doEvalWaitReconnection() {
 
 doConfigureSystem() {
     setStepIndicator 0
-
-    if [ -d ${DIR} ]; then rm -rf ${DIR}; fi
-    mkdir ${DIR}
 
     doEvalWaitReconnection installPackageIfNeed tar
     validateExitCode $?
@@ -416,14 +422,14 @@ doDownloadBinaries() {
     for ((;;)); do
         OUTPUT=$(doEvalWaitReconnection executeIMCommand download ${ARTIFACT} ${VERSION})
         local exitCode=$?
-        echo "${OUTPUT}" | sed 's/\[[=> ]*\]//g'  >> install.log
+        echo "${OUTPUT}" | sed 's/\[[=> ]*\]//g'  >> ${INSTALL_LOG}
 
         if [[ ${exitCode} == 0 ]]; then
             break
         fi
 
         if [[ "${OUTPUT}" =~ .*File.corrupted.* ]]; then
-            echo "Codenvy binaries will be redownloaded" >> install.log
+            echo "Codenvy binaries will be redownloaded" >> ${INSTALL_LOG}
             continue
         else
             validateExitCode ${exitCode}
@@ -431,7 +437,7 @@ doDownloadBinaries() {
     done
     doUpdateDownloadProgress 100
 
-    executeIMCommand download --list-local >> install.log
+    executeIMCommand download --list-local >> ${INSTALL_LOG}
     validateExitCode $?
 }
 
@@ -468,7 +474,7 @@ updateDownloadProgress() {
 
     for ((;;)); do
         local size
-        local localFile="${HOME}/codenvy-im-data/updates/${ARTIFACT}/${VERSION}/${file}"
+        local localFile="${INSTALL_DIR}/updates/${ARTIFACT}/${VERSION}/${file}"
         if [[ -f "${localFile}" ]]; then
             size=$(du -b "${localFile}" | cut -f1)
         else
@@ -509,10 +515,10 @@ doInstallCodenvy() {
         for ((;;)); do
             local exitCode
             if [ ${CODENVY_TYPE} == "multi" ]; then
-                doEvalWaitReconnection executeIMCommand install --step ${STEP} --forceInstall --multi --config ${CONFIG} ${ARTIFACT} ${VERSION} >> install.log
+                doEvalWaitReconnection executeIMCommand install --step ${STEP} --forceInstall --multi --config ${CONFIG} ${ARTIFACT} ${VERSION} >> ${INSTALL_LOG}
                 exitCode=$?
             else
-                doEvalWaitReconnection executeIMCommand install --step ${STEP} --forceInstall --config ${CONFIG} ${ARTIFACT} ${VERSION} >> install.log
+                doEvalWaitReconnection executeIMCommand install --step ${STEP} --forceInstall --config ${CONFIG} ${ARTIFACT} ${VERSION} >> ${INSTALL_LOG}
                 exitCode=$?
             fi
 
@@ -524,7 +530,7 @@ doInstallCodenvy() {
             # it prevents breaking installation due to a lot of puppet errors
             local checkFailed=$(cat /tmp/im_internet_access_lost 2>/dev/null)
             if [[ ! ${STEP} == 9 ]] && [[ ${checkFailed} == 1 ]]; then
-                echo "Repeating installation step "${STEP} >> install.log
+                echo "Repeating installation step "${STEP} >> ${INSTALL_LOG}
                 continue;
             else
                 validateExitCode ${exitCode}
@@ -583,14 +589,14 @@ downloadConfig() {
 installPackageIfNeed() {
     local exitCode
     rpm -qa | grep "^$1-" &> /dev/null || { # check if required package already has been installed earlier
-        echo -n "Install package '$1'... " >> install.log
+        echo -n "Install package '$1'... " >> ${INSTALL_LOG}
 
-        exitCode=$(sudo yum install $1 -y -q --errorlevel=0 >> install.log 2>&1; echo $?)
+        exitCode=$(sudo yum install $1 -y -q --errorlevel=0 >> ${INSTALL_LOG} 2>&1; echo $?)
         if [[ ! ${exitCode} == 0 ]]; then
-            echo " [FAILED]" >> install.log
+            echo " [FAILED]" >> ${INSTALL_LOG}
             return ${exitCode}
         else
-            echo " [OK]" >> install.log
+            echo " [OK]" >> ${INSTALL_LOG}
         fi
     }
 }
@@ -623,37 +629,43 @@ preConfigureSystem() {
 }
 
 installJava() {
-    echo -n "Install java package from '${JRE_URL}' into the directory '${DIR}/jre' ... " >> install.log
+    echo -n "Install java package from '${JRE_URL}' into the directory '${INSTALL_DIR}/jre' ... " >> ${INSTALL_LOG}
 
-    wget -q --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" "${JRE_URL}" --output-document=jre.tar.gz >> install.log 2>&1 || return 1
-    tar -xf jre.tar.gz -C ${DIR} >> install.log 2>&1
+    wget -q --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" "${JRE_URL}" --output-document=${INSTALL_DIR}/jre.tar.gz >> ${INSTALL_LOG} 2>&1 || return 1
+    tar -xf ${INSTALL_DIR}/jre.tar.gz -C ${INSTALL_DIR} >> ${INSTALL_LOG} 2>&1
 
-    rm -fr ${DIR}/jre >> install.log 2>&1
-    mv -f ${DIR}/jre1.8.0_45 ${DIR}/jre >> install.log 2>&1
-    rm jre.tar.gz >> install.log 2>&1
+    rm -fr ${INSTALL_DIR}/jre >> ${INSTALL_LOG} 2>&1
+    mv -f ${INSTALL_DIR}/jre1.8.0_45 ${INSTALL_DIR}/jre >> ${INSTALL_LOG} 2>&1
+    rm ${INSTALL_DIR}/jre.tar.gz >> ${INSTALL_LOG} 2>&1
 
-    echo " [OK]" >> install.log
+    echo " [OK]" >> ${INSTALL_LOG}
 }
 
 installIm() {
-    IM_URL="https://codenvy.com/update/repository/public/download/installation-manager-cli"
-    if [[ $IM_CLI == true ]]; then
-        IM_URL=${IM_URL}"/"${VERSION}
-    fi
-    echo ${IM_URL} >> install.log
+    local imUrl="https://codenvy.com/update/repository/public/download/installation-manager-cli"
 
-    IM_FILE=$(curl -sI  ${IM_URL} | grep -o -E 'filename=(.*)[.]tar.gz' | sed -e 's/filename=//')
+    if [[ $IM_CLI == true ]]; then
+        imUrl=${imUrl}"/"${VERSION}
+    fi
+    echo "${imUrl}" >> ${INSTALL_LOG}
+
+    local imFilePath="${INSTALL_DIR}/$(curl -sI "${imUrl}" | grep -o -E 'filename=(.*)[.]tar.gz' | sed -e 's/filename=//')"
     if [[ ! $? == 0 ]]; then
         return 1
     fi
 
-    curl -s -o ${IM_FILE} -L ${IM_URL} || return 1
+    curl -s --output "${imFilePath}" -L "${imUrl}" || return 1
 
-    mkdir ${DIR}/codenvy-cli
-    tar -xf ${IM_FILE} -C ${DIR}/codenvy-cli
+    local imCliDir="${INSTALL_DIR}/cli"
+    if [ -d ${imCliDir} ]; then rm -rf ${imCliDir}; fi
+    mkdir "${imCliDir}"
 
-    sed -i "2iJAVA_HOME=${HOME}/codenvy-im/jre" ${DIR}/codenvy-cli/bin/codenvy
-    printf '\nexport PATH=$PATH:$HOME/codenvy-im/codenvy-cli/bin\n' >> ${HOME}/.bashrc
+    tar -xf "${imFilePath}" -C "${imCliDir}"
+    rm "${imFilePath}"
+
+    sed -i "2iJAVA_HOME=${INSTALL_DIR}/jre" ${imCliDir}/bin/codenvy
+    printf "\nexport CODENVY_IM_BASE=${INSTALL_DIR}\n" >> ${HOME}/.bashrc
+    printf '\nexport PATH=$PATH:$CODENVY_IM_BASE/cli/bin\n' >> ${HOME}/.bashrc
 }
 
 clearLine() {
@@ -790,7 +802,7 @@ askHostnameAndInsertProperty() {
 }
 
 executeIMCommand() {
-    ${DIR}/codenvy-cli/bin/codenvy $@
+    ${INSTALL_DIR}/cli/bin/codenvy $@
 }
 
 pressAnyKeyToContinueAndClearConsole() {
@@ -1031,6 +1043,10 @@ printPreInstallInfo_single() {
         insertProperty "https_proxy_for_codenvy_workspaces" ${HTTPS_PROXY_FOR_CODENVY_WORKSPACES}
     fi
 
+    if [ -n "${CODENVY_NO_PROXY}" ]; then
+        insertProperty "no_proxy" ${CODENVY_NO_PROXY}
+    fi
+
     if [[ $IM_CLI == false ]]; then
         doCheckAvailablePorts_single
     fi
@@ -1169,7 +1185,7 @@ doCheckAvailableResourcesLocally() {
     local writePermIssueFound=false
     local writePermStateToDisplay=$(printf "%-44s" && printSuccess "[OK]")
 
-    if (( $(touch "$INSTALL_DIRECTORY/tmp_file" &>/dev/null; echo $?; rm "$INSTALL_DIRECTORY/tmp_file" &>/dev/null) == 1 )); then
+    if (( $(touch "$INSTALL_DIR/tmp_file" &>/dev/null; echo $?; rm "$INSTALL_DIR/tmp_file" &>/dev/null) == 1 )); then
         writePermIssueFound=true
         writePermStateToDisplay=$(printf "%-44s" && printError "[NOT OK]")
     fi
@@ -1215,7 +1231,7 @@ doCheckAvailableResourcesLocally() {
     fi
 
     if [[ ${writePermIssueFound} == true ]]; then
-        println "$(printError "ERROR: Installation directory \"")$(printImportantLink $INSTALL_DIRECTORY)$(printError "\" cannot be written to.")"
+        println "$(printError "ERROR: Installation directory \"")$(printImportantLink $INSTALL_DIR)$(printError "\" cannot be written to.")"
         println
     fi
 
@@ -1801,7 +1817,7 @@ printPostInstallInfo_codenvy() {
 
 printPostInstallInfo_installation-manager-cli() {
     println
-    println "Codenvy Installation Manager is installed into ${DIR}/codenvy-cli directory"
+    println "Codenvy Installation Manager is installed into ${INSTALL_DIR}/cli directory"
 }
 
 setRunOptions "$@"

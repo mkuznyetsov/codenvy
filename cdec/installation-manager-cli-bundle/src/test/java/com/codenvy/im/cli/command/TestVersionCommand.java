@@ -72,9 +72,9 @@ public class TestVersionCommand extends AbstractTestCommand {
                                                                                                                                          UpdateArtifactInfo.Status.AVAILABLE_TO_DOWNLOAD);
 
     public static final UpdateArtifactInfo UPDATE_CDEC_1_0_2_STABLE_DOWNLOADED = UpdateArtifactInfo.createInstance(CDECArtifact.NAME,
-                                                                                                                              "1.0.2",
-                                                                                                                              VersionLabel.STABLE,
-                                                                                                                              UpdateArtifactInfo.Status.DOWNLOADED);
+                                                                                                                   "1.0.2",
+                                                                                                                   VersionLabel.STABLE,
+                                                                                                                   UpdateArtifactInfo.Status.DOWNLOADED);
 
     public static final UpdateArtifactInfo UPDATE_CDEC_1_0_3_SNAPSHOT_UNSTABLE_DOWNLOADED = UpdateArtifactInfo.createInstance(CDECArtifact.NAME,
                                                                                                                               "1.0.3-SNAPSHOT",
@@ -85,6 +85,14 @@ public class TestVersionCommand extends AbstractTestCommand {
                                                                                                            "1.0.1",
                                                                                                            VersionLabel.STABLE,
                                                                                                            InstallArtifactInfo.Status.SUCCESS);
+
+    public static final InstallArtifactInfo INSTALLED_CDEC_1_0_1_WITHOUT_LABEL = InstallArtifactInfo.createInstance(CDECArtifact.NAME,
+                                                                                                                    "1.0.1",
+                                                                                                                    InstallArtifactInfo.Status.SUCCESS);
+
+    public static final UpdateArtifactInfo UPDATE_CDEC_1_0_2_WITHOUT_LABEL = UpdateArtifactInfo.createInstance(CDECArtifact.NAME,
+                                                                                                               "1.0.2",
+                                                                                                               UpdateArtifactInfo.Status.AVAILABLE_TO_DOWNLOAD);
 
     private VersionCommand spyCommand;
 
@@ -118,7 +126,7 @@ public class TestVersionCommand extends AbstractTestCommand {
     }
 
 
-    @Test(dataProvider="getTestVersionData")
+    @Test(dataProvider = "getTestVersionData")
     public void testCodenvyVersion(List<InstallArtifactInfo> installed, List<UpdateArtifactInfo> updates, String expectedOutput) throws Exception {
         doReturn(installed).when(facade).getInstalledVersions();
         doReturn(updates).when(facade).getAllUpdatesAfterInstalledVersion(any(Artifact.class));
@@ -132,7 +140,7 @@ public class TestVersionCommand extends AbstractTestCommand {
 
     @DataProvider
     private Object[][] getTestVersionData() {
-        return new Object[][] {
+        return new Object[][]{
             {ImmutableList.of(),
              ImmutableList.of(),
              "{\n"
@@ -226,6 +234,13 @@ public class TestVersionCommand extends AbstractTestCommand {
              + "  },\n"
              + "  \"status\" : \"There is a new stable version of Codenvy available. Run 'install' command to install it.\"\n"
              + "}\n"},
+
+            {ImmutableList.of(INSTALLED_CDEC_1_0_1_WITHOUT_LABEL),
+             ImmutableList.of(UPDATE_CDEC_1_0_2_WITHOUT_LABEL),
+             "{\n"
+             + "  \"artifact\" : \"codenvy\",\n"
+             + "  \"version\" : \"1.0.1\"\n"
+             + "}\n"}
         };
     }
 

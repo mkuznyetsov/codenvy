@@ -71,7 +71,6 @@ import static org.testng.Assert.fail;
  */
 public class TestCDECArtifact extends BaseTest {
     public static final String INITIAL_OS_VERSION = OSUtils.VERSION;
-    public static final String SYSTEM_USER_NAME   = System.getProperty("user.name");
 
     public static final String BASE_TMP_DIR      = "target/" + TestCDECArtifact.class.getSimpleName();
     public static final String TMP_CODENVY       = BASE_TMP_DIR + "/tmp/codenvy";

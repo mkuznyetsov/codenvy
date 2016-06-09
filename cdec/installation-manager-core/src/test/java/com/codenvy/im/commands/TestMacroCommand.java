@@ -14,6 +14,7 @@
  */
 package com.codenvy.im.commands;
 
+import com.codenvy.im.BaseTest;
 import com.codenvy.im.agent.AgentException;
 import com.codenvy.im.managers.NodeConfig;
 import com.google.common.collect.ImmutableList;
@@ -33,7 +34,6 @@ import static org.testng.Assert.assertEquals;
  * @author Dmytro Nochevnov
  */
 public class TestMacroCommand {
-    public static final String SYSTEM_USER_NAME = System.getProperty("user.name");
 
     @Test
     public void testDescription() {
@@ -104,7 +104,7 @@ public class TestMacroCommand {
                                               "{'command'='testCommand', 'agent'='{'host'='127.0.0.1', 'port'='22', 'user'='%1$s', 'identity'='[~/" +
                                               ".ssh/id_rsa]'}'}" +
                                               "]",
-                                              SYSTEM_USER_NAME);
+                                              BaseTest.SYSTEM_USER_NAME);
 
         List<NodeConfig> nodes = ImmutableList.of(
                 new NodeConfig(NodeConfig.NodeType.API, "localhost"),

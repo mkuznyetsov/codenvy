@@ -14,18 +14,13 @@
  */
 package com.codenvy.onpremises;
 
-import com.codenvy.auth.sso.client.ServerClient;
-import com.codenvy.auth.sso.client.filter.RequestFilter;
-import com.codenvy.auth.sso.client.token.RequestTokenExtractor;
-import com.google.inject.AbstractModule;
-import com.google.inject.name.Names;
-import com.google.inject.servlet.ServletModule;
-
-import org.eclipse.che.commons.env.EnvironmentContext;
-import org.eclipse.che.inject.DynaModule;
-
 import javax.inject.Singleton;
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -38,20 +33,14 @@ import java.util.regex.Pattern;
  */
 @Singleton
 public class DashboardRedirectionFilter implements Filter {
-    private static Pattern projectPattern = Pattern.compile("^/ws/[^/]+?/.+?");
+    private static Pattern projectPattern = Pattern.compile("^/ws/[^/]+?/.+");
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest)request;
         HttpServletResponse resp = (HttpServletResponse)response;
-        EnvironmentContext context = EnvironmentContext.getCurrent();
 
-        if ("GET".equals(req.getMethod())
-            && !projectPattern.matcher(req.getRequestURI()).matches()
-            && !context.isWorkspaceTemporary()
-            && context.getSubject().getUserId() != null
-            && req.getQueryString() == null
-                ) {
+        if ("GET".equals(req.getMethod()) && !projectPattern.matcher(req.getRequestURI()).matches()) {
             resp.sendRedirect("/dashboard/");
             return;
         }
@@ -65,40 +54,5 @@ public class DashboardRedirectionFilter implements Filter {
 
     @Override
     public void destroy() {
-    }
-
-    /**
-     * @author Alexander Garagatyi
-     */
-    @DynaModule
-    public static class IdeModule extends AbstractModule {
-        @Override
-        protected void configure() {
-            bind(com.codenvy.service.http.WorkspaceInfoCache.WorkspaceCacheLoader.class)
-                    .to(com.codenvy.service.http.WorkspaceInfoCache.HttpWorkspaceCacheLoader.class);
-
-            bindConstant().annotatedWith(Names.named("auth.sso.login_page_url")).to("/site/login");
-            bindConstant().annotatedWith(Names.named("auth.sso.cookies_disabled_error_page_url")).to("/site/error/error-cookies-disabled");
-            bindConstant().annotatedWith(Names.named("error.page.workspace_not_found_redirect_url")).to("/site/error/error-tenant-name");
-            bindConstant().annotatedWith(Names.named("auth.sso.client_skip_filter_regexp")).to("^/ws/_sso/(.+)$");
-
-            bind(RequestTokenExtractor.class).to(com.codenvy.auth.sso.client.token.ChainedTokenExtractor.class);
-            bind(ServerClient.class).to(com.codenvy.auth.sso.client.HttpSsoServerClient.class);
-            bind(RequestFilter.class).to(com.codenvy.auth.sso.client.filter.RegexpRequestFilter.class);
-        }
-    }
-
-    /**
-     * Servlet module composer for ide war.
-     *
-     * @author Alexander Garagatyi
-     */
-    @DynaModule
-    public static class IdeServletModule extends ServletModule {
-        @Override
-        protected void configureServlets() {
-            filter("/*").through(com.codenvy.auth.sso.client.LoginFilter.class);
-            install(new com.codenvy.auth.sso.client.deploy.SsoClientServletModule());
-        }
     }
 }

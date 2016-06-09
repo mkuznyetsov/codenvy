@@ -1,4 +1,0 @@
-127.0.0.1 2014-05-07 11:00:00,000[main] [INFO] [HelloWorld 1010] - USER#user1@gmail.com# WS#ws2# EVENT#project-created# PROJECT#project2# TYPE#type# PAAS#paas3#
-127.0.0.1 2014-05-07 13:00:00,000[main] [INFO] [HelloWorld 1010] - USER#user1@gmail.com# WS#ws3# EVENT#project-created# PROJECT#project4# TYPE#type# PAAS#paas3#
-127.0.0.1 2014-05-07 14:00:00,000[main] [INFO] [HelloWorld 1010] - USER#user1@gmail.com# WS#ws3# EVENT#project-created# PROJECT#project4# TYPE#type# PAAS#gae#
-127.0.0.1 2014-05-07 15:00:00,000[main] [INFO] [HelloWorld 1010] - USER#user2@gmail.com# WS#ws4#  EVENT#project-created# PROJECT#project4# TYPE#type# PAAS#local#

@@ -44,8 +44,6 @@ import static org.testng.Assert.assertTrue;
 
 /** @author Dmytro Nochevnov */
 public class TestCommandLibrary extends BaseTest {
-    public static final String SYSTEM_USER_NAME = System.getProperty("user.name");
-
     public static NodeConfig testApiNode  = new NodeConfig(NodeConfig.NodeType.API, "localhost");
     public static NodeConfig testDataNode = new NodeConfig(NodeConfig.NodeType.DATA, "127.0.0.1");
 

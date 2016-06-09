@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
  *
  * @author Dmytro Nochevnov
  */
-public class TestInstallationManagerCliWithCodenvy4 extends BaseTest {
+public class TestInstallationManagerCliWithCodenvy4 extends BaseIntegrationTest {
 
     @Test
     public void testInstallSingleNodeAndChangeConfigWithCodenvy4() throws Exception {

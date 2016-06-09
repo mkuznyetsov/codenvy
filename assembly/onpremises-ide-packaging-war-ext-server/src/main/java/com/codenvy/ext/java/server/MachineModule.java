@@ -112,6 +112,9 @@ public class MachineModule extends AbstractModule {
         install(new org.eclipse.che.commons.schedule.executor.ScheduleModule());
 
         bind(RequestTokenExtractor.class).to(com.codenvy.auth.sso.client.token.ChainedTokenExtractor.class);
+
+        bind(String.class).annotatedWith(Names.named("wsagent.endpoint"))
+                          .toProvider(com.codenvy.api.agent.WsAgentURLProvider.class);
     }
 
     //it's need for WSocketEventBusClient and in the future will be replaced with the property

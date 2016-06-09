@@ -18,8 +18,13 @@ package com.codenvy.im;
 import org.testng.annotations.Test;
 
 /** @author Anatoliy Bazko */
-public class TestInstallationManagerCli extends BaseTest{
-    
+public class TestInstallationManagerCli extends BaseIntegrationTest {
+
+    @Test
+    public void testInstallImCli() throws Exception {
+        doTest("install/test-install-im-cli.sh");
+    }
+
     @Test
     public void testInstallExceptionCases() throws Exception {
         doTest("install/test-install-exception-cases.sh");
@@ -43,11 +48,6 @@ public class TestInstallationManagerCli extends BaseTest{
     @Test
     public void testHelpCommand() throws Exception {
         doTest("help/test-help.sh");
-    }
-
-    @Test
-    public void testCheckImConfigCommand() throws Exception {
-        doTest("config/test-config-check-im-config.sh");
     }
 
 }

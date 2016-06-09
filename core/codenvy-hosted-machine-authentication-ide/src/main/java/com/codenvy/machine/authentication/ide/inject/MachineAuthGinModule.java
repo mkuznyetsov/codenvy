@@ -15,13 +15,12 @@
 package com.codenvy.machine.authentication.ide.inject;
 
 
-import com.codenvy.machine.authentication.ide.MachineAsyncRequestFactory;
 import com.codenvy.machine.authentication.ide.MachineTokenServiceClient;
-import com.codenvy.machine.authentication.ide.MachineTokenServiceClientImpl;
 import com.google.gwt.inject.client.AbstractGinModule;
 import com.google.inject.Singleton;
 
 import org.eclipse.che.ide.api.extension.ExtensionGinModule;
+import org.eclipse.che.ide.api.machine.WsAgentURLModifier;
 import org.eclipse.che.ide.rest.AsyncRequestFactory;
 
 /**
@@ -32,7 +31,9 @@ public class MachineAuthGinModule extends AbstractGinModule {
 
     @Override
     protected void configure() {
-        bind(AsyncRequestFactory.class).to(MachineAsyncRequestFactory.class);
-        bind(MachineTokenServiceClient.class).to(MachineTokenServiceClientImpl.class).in(Singleton.class);
+        bind(AsyncRequestFactory.class).to(com.codenvy.machine.authentication.ide.MachineAsyncRequestFactory.class);
+        bind(MachineTokenServiceClient.class).to(com.codenvy.machine.authentication.ide.MachineTokenServiceClientImpl.class)
+                                             .in(Singleton.class);
+        bind(WsAgentURLModifier.class).to(com.codenvy.machine.authentication.ide.CodenvyMachineLinksModifier.class);
     }
 }

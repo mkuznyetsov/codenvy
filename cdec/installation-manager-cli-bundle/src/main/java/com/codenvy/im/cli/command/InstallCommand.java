@@ -281,10 +281,6 @@ public class InstallCommand extends AbstractIMCommand {
     }
 
     protected void setInstallProperties(InstallOptions options, boolean isInstall) throws IOException {
-        if (artifactName.equals(InstallManagerArtifact.NAME)) {
-            options.setCliUserHomeDir(System.getProperty("user.home"));
-        }
-
         Map<String, String> properties = configManager.prepareInstallProperties(configFilePath,
                                                                                 binaries == null ? null : Paths.get(binaries),
                                                                                 installType,
