@@ -19,9 +19,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>codenvy-agent-parent</artifactId>
-        <groupId>com.codenvy.hosted-infrastructure</groupId>
+        <groupId>com.codenvy.onpremises</groupId>
         <version>4.3.0-RC2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>wsagent-codenvy</artifactId>
     <packaging>jar</packaging>

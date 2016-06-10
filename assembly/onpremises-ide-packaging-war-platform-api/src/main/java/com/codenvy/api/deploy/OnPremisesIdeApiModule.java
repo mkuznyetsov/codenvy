@@ -210,7 +210,6 @@ public class OnPremisesIdeApiModule extends AbstractModule {
         bind(com.codenvy.machine.authentication.server.MachineTokenService.class);
         bind(WorkspaceServiceLinksInjector.class).to(com.codenvy.machine.authentication.server.WorkspaceServiceAuthLinksInjector.class);
         bind(MachineServiceLinksInjector.class).to(com.codenvy.machine.authentication.server.MachineServiceAuthLinksInjector.class);
-        install(new com.codenvy.machine.authentication.server.interceptor.InterceptorModule());
         bind(ServerClient.class).to(com.codenvy.auth.sso.client.MachineSsoServerClient.class);
         bind(com.codenvy.auth.sso.client.MachineSessionInvalidator.class);
 

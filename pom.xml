@@ -277,11 +277,6 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.codenvy.hosted-infrastructure</groupId>
-                <artifactId>wsagent-codenvy</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.codenvy.im</groupId>
                 <artifactId>installation-manager-cli-bundle</artifactId>
                 <version>${project.version}</version>
@@ -424,6 +419,11 @@
                 <artifactId>onpremises-ide-packaging-war-website-codenvy</artifactId>
                 <version>${project.version}</version>
                 <type>war</type>
+            </dependency>
+            <dependency>
+                <groupId>com.codenvy.onpremises</groupId>
+                <artifactId>wsagent-codenvy</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.codenvy.platform-api-client-java</groupId>
