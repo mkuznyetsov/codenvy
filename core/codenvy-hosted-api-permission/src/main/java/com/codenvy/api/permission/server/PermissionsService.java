@@ -15,6 +15,8 @@
 package com.codenvy.api.permission.server;
 
 import com.codenvy.api.permission.shared.Permissions;
+import com.codenvy.api.permission.shared.PermissionsDomain;
+import com.codenvy.api.permission.shared.dto.DomainDto;
 import com.codenvy.api.permission.shared.dto.PermissionsDto;
 
 import org.eclipse.che.api.core.BadRequestException;
@@ -22,6 +24,7 @@ import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.ServerException;
 import org.eclipse.che.api.core.rest.Service;
+import org.eclipse.che.api.core.rest.annotations.Required;
 import org.eclipse.che.commons.env.EnvironmentContext;
 import org.eclipse.che.dto.server.DtoFactory;
 
@@ -33,11 +36,12 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.Collections.singletonList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 /**
@@ -55,24 +59,22 @@ public class PermissionsService extends Service {
     }
 
     /**
-     * Returns supported domains' identifiers
+     * Returns all supported domains or only requested if domain parameter specified
+     *
+     * @param domainId
+     *         id of requested domain
      */
     @GET
     @Produces(APPLICATION_JSON)
-    public Set<String> getSupportedDomains() {
-        return permissionManager.getDomains();
-    }
-
-    /**
-     * @param domain
-     *         domain id to retrieve supported actions
-     * @return supported actions by given domain
-     */
-    @GET
-    @Path("/{domain}")
-    @Produces(APPLICATION_JSON)
-    public Set<String> getSupportedActions(@PathParam("domain") String domain) throws NotFoundException {
-        return permissionManager.getDomainsActions(domain);
+    public List<DomainDto> getSupportedDomains(@QueryParam("domain") String domainId) throws NotFoundException {
+        if (isNullOrEmpty(domainId)) {
+            return permissionManager.getDomains()
+                                    .stream()
+                                    .map(this::asDto)
+                                    .collect(Collectors.toList());
+        } else {
+            return singletonList(asDto(permissionManager.getDomain(domainId)));
+        }
     }
 
     /**
@@ -80,12 +82,22 @@ public class PermissionsService extends Service {
      *
      * @param permissionsDto
      *         permissions to storing
+     * @throws BadRequestException
+     *         when required parameters are missed
+     * @throws NotFoundException
+     *         when permissions have unsupported domain
+     * @throws ConflictException
+     *         when new permissions remove last 'setPermissions' of given instance
+     * @throws ServerException
+     *         when any other error occurs during permissions storing
      */
     @POST
     @Consumes(APPLICATION_JSON)
-    public void storePermissions(PermissionsDto permissionsDto)
-            throws ServerException, BadRequestException, ConflictException, NotFoundException {
-
+    @Produces(APPLICATION_JSON)
+    public void storePermissions(PermissionsDto permissionsDto) throws ServerException,
+                                                                       BadRequestException,
+                                                                       ConflictException,
+                                                                       NotFoundException {
         checkArgument(permissionsDto != null, "Permissions descriptor required");
         checkArgument(!isNullOrEmpty(permissionsDto.getUser()), "User required");
         checkArgument(!isNullOrEmpty(permissionsDto.getDomain()), "Domain required");
@@ -96,21 +108,26 @@ public class PermissionsService extends Service {
     }
 
     /**
-     * Returns list of permissions of current user which are related to specified domain and instance
+     * Permissions of current user which are related to specified domain and instance
      *
      * @param domain
-     *         domain id to retrieve permitted actions
+     *         domain id to retrieve users permissions
      * @param instance
-     *         instance id to retrieve permitted actions
-     * @return a list of actions which can be performed by current user to given domain and instance
+     *         instance id to retrieve users permissions
+     * @return permissions which can be performed by current user to given domain and instance
+     * @throws NotFoundException
+     *         when given domain is unsupported
+     * @throws NotFoundException
+     *         when permissions with given user and domain and instance was not found
+     * @throws ServerException
+     *         when any other error occurs during permissions fetching
      */
     @GET
-    @Path("/{domain}/{instance}")
+    @Path("/{domain}")
     @Produces(APPLICATION_JSON)
-    public PermissionsDto getUsersPermissions(@PathParam("domain") String domain,
-                                              @PathParam("instance") String instance) throws ServerException,
-                                                                                             ConflictException,
-                                                                                             NotFoundException {
+    public PermissionsDto getCurrentUsersPermissions(@PathParam("domain") String domain,
+                                                     @QueryParam("instance") String instance) throws ServerException,
+                                                                                                     NotFoundException {
         return toDto(permissionManager.get(EnvironmentContext.getCurrent().getSubject().getUserId(), domain, instance));
     }
 
@@ -121,12 +138,17 @@ public class PermissionsService extends Service {
      *         id of domain
      * @param instance
      *         id of instance
+     * @throws NotFoundException
+     *         when given domain is unsupported
+     * @throws ServerException
+     *         when any other error occurs during permissions fetching
      */
     @GET
-    @Path("/{domain}/{instance}/list")
-    public List<PermissionsDto> getUsersPermissionsByInstance(@PathParam("domain") String domain,
-                                                              @PathParam("instance") String instance) throws ServerException,
-                                                                                                             NotFoundException {
+    @Path("/{domain}/all")
+    @Produces(APPLICATION_JSON)
+    public List<PermissionsDto> getUsersPermissions(@PathParam("domain") String domain,
+                                                    @QueryParam("instance") String instance) throws ServerException,
+                                                                                                    NotFoundException {
         return permissionManager.getByInstance(domain, instance)
                                 .stream()
                                 .map(this::toDto)
@@ -142,13 +164,25 @@ public class PermissionsService extends Service {
      *         domain id
      * @param instance
      *         instance id
+     * @throws NotFoundException
+     *         when given domain is unsupported
+     * @throws ConflictException
+     *         when removes last 'setPermissions' of given instance
+     * @throws ServerException
+     *         when any other error occurs during permissions removing
      */
     @DELETE
-    @Path("/{domain}/{instance}/{user}")
+    @Path("/{domain}")
     public void removePermissions(@PathParam("domain") String domain,
-                                  @PathParam("instance") String instance,
-                                  @PathParam("user") String user) throws ConflictException, ServerException, NotFoundException {
+                                  @QueryParam("instance") String instance,
+                                  @QueryParam("user") @Required String user) throws ConflictException, ServerException, NotFoundException {
         permissionManager.remove(user, domain, instance);
+    }
+
+    private DomainDto asDto(PermissionsDomain domain) {
+        return DtoFactory.newDto(DomainDto.class)
+                         .withId(domain.getId())
+                         .withAllowedActions(domain.getAllowedActions());
     }
 
     private void checkArgument(boolean expression, String message) throws BadRequestException {

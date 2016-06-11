@@ -15,6 +15,7 @@
 package com.codenvy.api.permission.server;
 
 import com.codenvy.api.permission.server.dao.PermissionsStorage;
+import com.codenvy.api.permission.shared.PermissionsDomain;
 import com.google.common.collect.ImmutableMap;
 
 import org.eclipse.che.api.core.ConflictException;
@@ -23,11 +24,15 @@ import org.eclipse.che.api.core.ServerException;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.codenvy.api.permission.server.AbstractPermissionsDomain.SET_PERMISSIONS;
 
 /**
  * Facade for Permissions related operations.
@@ -37,15 +42,15 @@ import java.util.stream.Collectors;
  */
 @Singleton
 public class PermissionManager {
-    private final Map<String, PermissionsStorage> domainToStorage;
-    private final Map<String, PermissionsDomain>  domains;
+    private final Map<String, PermissionsStorage>        domainToStorage;
+    private final Map<String, AbstractPermissionsDomain> domains;
 
     @Inject
     public PermissionManager(Set<PermissionsStorage> storages) throws ServerException {
         Map<String, PermissionsStorage> domainToStorage = new HashMap<>();
-        Map<String, PermissionsDomain> domains = new HashMap<>();
+        Map<String, AbstractPermissionsDomain> domains = new HashMap<>();
         for (PermissionsStorage storage : storages) {
-            for (PermissionsDomain domain : storage.getDomains()) {
+            for (AbstractPermissionsDomain domain : storage.getDomains()) {
                 domains.put(domain.getId(), domain);
                 PermissionsStorage oldStorage = domainToStorage.put(domain.getId(), storage);
                 if (oldStorage != null) {
@@ -76,12 +81,18 @@ public class PermissionManager {
         final String user = permissions.getUser();
 
         final PermissionsStorage permissionsStorage = getPermissionsStorage(domain);
-        if (!permissions.getActions().contains("setPermissions")
+        if (!permissions.getActions().contains(SET_PERMISSIONS)
             && userHasLastSetPermissions(permissionsStorage, user, domain, instance)) {
             throw new ConflictException("Can't edit permissions because there is not any another user with permission 'setPermissions'");
         }
 
-        final Set<String> allowedActions = getDomainsActions(permissions.getDomain());
+        final PermissionsDomain permissionsDomain = getDomain(permissions.getDomain());
+
+        if (permissionsDomain.isInstanceRequired() && instance == null) {
+            throw new ConflictException("Given domain requires non nullable value for instance");
+        }
+
+        final Set<String> allowedActions = new HashSet<>(permissionsDomain.getAllowedActions());
         final Set<String> unsupportedActions = permissions.getActions()
                                                           .stream()
                                                           .filter(action -> !allowedActions.contains(action))
@@ -169,29 +180,29 @@ public class PermissionManager {
      *         when any other error occurs during permission existence checking
      */
     public boolean exists(String user, String domain, String instance, String action) throws ServerException, NotFoundException {
-        return getDomainsActions(domain).contains(action)
+        return getDomain(domain).getAllowedActions().contains(action)
                && getPermissionsStorage(domain).exists(user, domain, instance, action);
     }
 
     /**
-     * Returns identifiers of supported domains
+     * Returns supported domains
      */
-    public Set<String> getDomains() {
-        return domains.keySet();
+    public List<AbstractPermissionsDomain> getDomains() {
+        return new ArrayList<>(domains.values());
     }
 
     /**
-     * Returns supported actions of specified domain
+     * Returns supported domain
      *
-     * @param domainId
-     *         id of domain
+     * @throws NotFoundException
+     *         when given domain is unsupported
      */
-    public Set<String> getDomainsActions(String domainId) throws NotFoundException {
-        final PermissionsDomain permissionsDomain = domains.get(domainId);
+    public PermissionsDomain getDomain(String domain) throws NotFoundException {
+        final AbstractPermissionsDomain permissionsDomain = domains.get(domain);
         if (permissionsDomain == null) {
-            throw new NotFoundException("Requested unsupported domain '" + domainId + "'");
+            throw new NotFoundException("Requested unsupported domain '" + domain + "'");
         }
-        return permissionsDomain.getAllowedActions();
+        return domains.get(domain);
     }
 
     private PermissionsStorage getPermissionsStorage(String domain) throws NotFoundException {
@@ -205,11 +216,11 @@ public class PermissionManager {
     private boolean userHasLastSetPermissions(PermissionsStorage permissionsStorage, String user, String domain, String instance)
             throws ServerException, ConflictException {
         try {
-            return permissionsStorage.exists(user, domain, instance, "setPermissions")
+            return permissionsStorage.exists(user, domain, instance, SET_PERMISSIONS)
                    && !permissionsStorage.getByInstance(domain, instance)
                                          .stream()
                                          .anyMatch(permission -> !permission.getUser().equals(user)
-                                                                 && permission.getActions().contains("setPermissions"));
+                                                                 && permission.getActions().contains(SET_PERMISSIONS));
         } catch (NotFoundException e) {
             return true;
         }

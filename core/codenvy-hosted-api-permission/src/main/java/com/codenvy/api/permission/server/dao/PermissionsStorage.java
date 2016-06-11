@@ -14,7 +14,7 @@
  */
 package com.codenvy.api.permission.server.dao;
 
-import com.codenvy.api.permission.server.PermissionsDomain;
+import com.codenvy.api.permission.server.AbstractPermissionsDomain;
 import com.codenvy.api.permission.server.PermissionsImpl;
 
 import org.eclipse.che.api.core.NotFoundException;
@@ -38,7 +38,7 @@ public interface PermissionsStorage {
     /**
      * @return store of domains this storage is able to maintain
      */
-    Set<PermissionsDomain> getDomains();
+    Set<AbstractPermissionsDomain> getDomains();
 
     /**
      * Stores (adds or updates) permissions.

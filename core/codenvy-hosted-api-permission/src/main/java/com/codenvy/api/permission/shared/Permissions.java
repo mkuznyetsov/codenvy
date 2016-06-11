@@ -14,6 +14,8 @@
  */
 package com.codenvy.api.permission.shared;
 
+import org.eclipse.che.commons.annotation.Nullable;
+
 import java.util.List;
 
 /**
@@ -35,8 +37,11 @@ public interface Permissions {
     String getDomain();
 
     /**
-     * Returns instance id
+     * Returns instance id. It is optional and can be null if domain supports it
+     *
+     * @see {@link PermissionsDomain#isInstanceRequired()}
      */
+    @Nullable
     String getInstance();
 
     /**

@@ -62,7 +62,6 @@ import org.eclipse.che.dto.server.JsonStringMapImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -100,7 +99,6 @@ import static java.lang.String.format;
  */
 @Singleton
 @Path("/")
-@RolesAllowed({"system/admin"})
 @Api(value = "/im", description = "Installation manager")
 public class InstallationManagerService {
 

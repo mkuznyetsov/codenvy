@@ -321,11 +321,6 @@ public abstract class BaseWebhookService extends Service {
         }
 
         @Override
-        public boolean isMemberOf(String role) {
-            return false;
-        }
-
-        @Override
         public boolean hasPermission(String domain, String instance, String action) {
             return false;
         }

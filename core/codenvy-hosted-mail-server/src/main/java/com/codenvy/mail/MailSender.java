@@ -18,6 +18,7 @@ import com.codenvy.mail.shared.dto.AttachmentDto;
 import com.codenvy.mail.shared.dto.EmailBeanDto;
 import com.google.common.io.Files;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +39,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
 
 /** Provide service of email sending. */
 @Path("/mail")
@@ -67,7 +66,7 @@ public class MailSender {
     @Path("send")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response sendMail(EmailBeanDto emailBean) {
-        List<File> tempFiles = new ArrayList<>();
+        File tempDir = null;
         try {
             MimeMessage message = new MimeMessage(sessionHolder.getMailSession());
             Multipart contentPart = new MimeMultipart();
@@ -77,18 +76,17 @@ public class MailSender {
             contentPart.addBodyPart(bodyPart);
 
             if (emailBean.getAttachments() != null) {
-                for (AttachmentDto attachment : emailBean.getAttachments()) {
+                tempDir = Files.createTempDir();
+                for (AttachmentDto attachmentDto : emailBean.getAttachments()) {
+                    //Create attachment file in temporary directory
+                    byte[] attachmentContent = Base64.getDecoder().decode(attachmentDto.getContent());
+                    File attachmentFile = new File(tempDir, attachmentDto.getFileName());
+                    Files.write(attachmentContent, attachmentFile);
+
+                    //Attach the attachment file to email
                     MimeBodyPart attachmentPart = new MimeBodyPart();
-
-                    byte[] content = Base64.getDecoder().decode(attachment.getContent());
-
-                    String tempDir = System.getProperty("java.io.tmpdir");
-                    File tempFile = new File(tempDir, attachment.getFileName());
-                    tempFiles.add(tempFile);
-                    Files.write(content, tempFile);
-
-                    attachmentPart.attachFile(tempFile);
-                    attachmentPart.setContentID("<" + attachment.getContentId() + ">");
+                    attachmentPart.attachFile(attachmentFile);
+                    attachmentPart.setContentID("<" + attachmentDto.getContentId() + ">");
                     contentPart.addBodyPart(attachmentPart);
                 }
             }
@@ -109,7 +107,13 @@ public class MailSender {
             LOG.error(e.getLocalizedMessage());
             throw new WebApplicationException(e);
         } finally {
-            tempFiles.forEach(File::delete);
+            if (tempDir != null) {
+                try {
+                    FileUtils.deleteDirectory(tempDir);
+                } catch (IOException exception) {
+                    LOG.error(exception.getMessage());
+                }
+            }
         }
 
         return Response.ok().build();

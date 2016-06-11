@@ -39,11 +39,6 @@ public class RequestWrapper {
             }
 
             @Override
-            public boolean isUserInRole(String role) {
-                return subject.isMemberOf(role);
-            }
-
-            @Override
             public Principal getUserPrincipal() {
                 return new Principal() {
                     @Override

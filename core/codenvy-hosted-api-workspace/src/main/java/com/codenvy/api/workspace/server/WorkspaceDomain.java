@@ -14,13 +14,15 @@
  */
 package com.codenvy.api.workspace.server;
 
-import com.codenvy.api.permission.server.PermissionsDomain;
-import com.google.common.collect.ImmutableSet;
+import com.codenvy.api.permission.server.AbstractPermissionsDomain;
+import com.google.common.collect.ImmutableList;
 
 /**
+ * Domain for storing workspaces' permissions
+ *
  * @author Sergii Leschenko
  */
-public class WorkspaceDomain extends PermissionsDomain {
+public class WorkspaceDomain extends AbstractPermissionsDomain {
     public static final String READ      = "read";
     public static final String RUN       = "run";
     public static final String USE       = "use";
@@ -30,12 +32,10 @@ public class WorkspaceDomain extends PermissionsDomain {
     public static final String DOMAIN_ID = "workspace";
 
     public WorkspaceDomain() {
-        super(DOMAIN_ID, ImmutableSet.of(SET_PERMISSIONS,
-                                         READ_PERMISSIONS,
-                                         READ,
-                                         RUN,
-                                         USE,
-                                         CONFIGURE,
-                                         DELETE));
+        super(DOMAIN_ID, ImmutableList.of(READ,
+                                          RUN,
+                                          USE,
+                                          CONFIGURE,
+                                          DELETE));
     }
 }

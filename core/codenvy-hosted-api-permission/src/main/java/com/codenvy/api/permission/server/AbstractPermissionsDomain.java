@@ -14,48 +14,63 @@
  */
 package com.codenvy.api.permission.server;
 
-import com.google.common.collect.ImmutableSet;
+import com.codenvy.api.permission.shared.PermissionsDomain;
+import com.google.common.collect.ImmutableList;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * Describes permissions domain
+ * Abstract implementation for {@link PermissionsDomain}
  *
- * @author gazarenkov
+ * Note: It supports "setPermission" by default
+ *
  * @author Sergii Leschenko
  */
-public abstract class PermissionsDomain {
+public abstract class AbstractPermissionsDomain implements PermissionsDomain {
     public static final String SET_PERMISSIONS  = "setPermissions";
-    public static final String READ_PERMISSIONS = "readPermissions";
 
-    private final String      id;
-    private final Set<String> allowedActions;
+    private final String       id;
+    private final List<String> allowedActions;
+    private final boolean      requiresInstance;
 
-    public PermissionsDomain(String id, Set<String> allowedActions) {
-        this.id = id;
-        this.allowedActions = ImmutableSet.copyOf(allowedActions);
+    protected AbstractPermissionsDomain(String id, List<String> allowedActions) {
+        this(id, allowedActions, true);
     }
 
-    /**
-     * Returns id of permissions domain
-     */
+    protected AbstractPermissionsDomain(String id, List<String> allowedActions, boolean requiresInstance) {
+        this.id = id;
+        Set<String> resultActions = new HashSet<>(allowedActions);
+        resultActions.add(SET_PERMISSIONS);
+        this.allowedActions = ImmutableList.copyOf(resultActions);
+        this.requiresInstance = requiresInstance;
+    }
+
+    @Override
     public String getId() {
         return id;
     }
 
-    /**
-     * Returns list actions which are allowed for domain
-     */
-    public Set<String> getAllowedActions() {
+    @Override
+    public List<String> getAllowedActions() {
         return allowedActions;
+    }
+
+    @Override
+    public Boolean isInstanceRequired() {
+        return requiresInstance;
     }
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof PermissionsDomain)) return false;
-        final PermissionsDomain other = (PermissionsDomain)obj;
+        if (!(obj instanceof AbstractPermissionsDomain)) return false;
+        final AbstractPermissionsDomain other = (AbstractPermissionsDomain)obj;
         return Objects.equals(id, other.id) &&
                Objects.equals(allowedActions, other.allowedActions);
     }

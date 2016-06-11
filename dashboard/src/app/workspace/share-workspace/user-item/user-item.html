@@ -1,0 +1,47 @@
+<!--
+
+    CODENVY CONFIDENTIAL
+    __________________
+
+     [2015] - [2016] Codenvy, S.A.
+     All Rights Reserved.
+
+    NOTICE:  All information contained herein is, and remains
+    the property of Codenvy S.A. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to Codenvy S.A.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+    Dissemination of this information or reproduction of this material
+    is strictly forbidden unless prior written permission is obtained
+    from Codenvy S.A..
+
+-->
+<che-list-item flex-gt-xs="100" flex="33"
+               ng-mouseover="hover=true" ng-mouseout="hover=false">
+  <div flex="100"
+       layout-gt-xs="row"
+       layout-align="start center"
+       class="user-list-row">
+    <img class="user-face" gravatar-src="userItemController.user.email">
+    <div flex="35"
+         layout="column"
+         layout-align-xs="center center" layout-align-gt-xs="start start">
+      <div class="user-name che-hover">
+        <span>{{userItemController.user.email}}</span>
+      </div>
+    </div>
+    <div flex flex-gt-xs="30"
+         layout="column"
+         layout-align="center start"
+         class="user-details">
+      <div>{{userItemController.getUserActions()}}</div>
+    </div>
+
+    <span class="user-actions" flex="25" layout="row" ng-show="hover" layout-align="end center">
+      <span class="codenvy-hover material-design icon-ic_remove_circle_outline_24px"
+            ng-click="userItemController.removeUser()">
+      </span>
+    </span>
+  </div>
+</che-list-item>

@@ -63,7 +63,7 @@ public class MachineSsoServerClient extends HttpSsoServerClient {
         }
         try {
             final org.eclipse.che.api.user.server.dao.User user = userManager.getById(tokenRegistry.getUserId(token));
-            return new SubjectImpl(user.getName(), user.getId(), token, ImmutableSet.of("user"), false);
+            return new SubjectImpl(user.getName(), user.getId(), token, false);
         } catch (ApiException x) {
             LOG.warn(x.getLocalizedMessage(), x);
         }

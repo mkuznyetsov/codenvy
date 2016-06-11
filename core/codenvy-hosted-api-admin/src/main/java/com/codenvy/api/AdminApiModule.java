@@ -14,21 +14,33 @@
  */
 package com.codenvy.api;
 
-import com.codenvy.api.dao.ldap.UserLdapPagination;
+import com.codenvy.api.permission.server.SystemDomain;
+import com.codenvy.api.user.server.AdminUserService;
+import com.codenvy.api.user.server.AdminUserServicePermissionsFilter;
+import com.codenvy.api.user.server.UserProfileServicePermissionsFilter;
+import com.codenvy.api.user.server.UserServicePermissionsFilter;
 import com.google.inject.AbstractModule;
-
-import org.eclipse.che.inject.DynaModule;
+import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Names;
 
 /**
  * Initialize all components necessary for Admin User API.
  *
  * @author Anatoliy Bazko
  */
-@DynaModule
 public class AdminApiModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(UserLdapPagination.class);
+        bind(AdminUserService.class);
+
+        final Multibinder<String> binder = Multibinder.newSetBinder(binder(),
+                                                                    String.class,
+                                                                    Names.named(SystemDomain.SYSTEM_DOMAIN_ACTIONS));
+        binder.addBinding().toInstance(UserServicePermissionsFilter.MANAGE_USERS_ACTION);
+
+        bind(AdminUserServicePermissionsFilter.class);
+        bind(UserProfileServicePermissionsFilter.class);
+        bind(UserServicePermissionsFilter.class);
     }
 }

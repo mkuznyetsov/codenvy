@@ -14,13 +14,13 @@
  */
 package com.codenvy.auth.sso.oauth;
 
-import com.codenvy.auth.sso.server.InputDataException;
 import com.codenvy.auth.sso.server.InputDataValidator;
 import com.codenvy.auth.sso.server.handler.BearerTokenAuthenticationHandler;
 
 import org.eclipse.che.api.auth.AuthenticationException;
 import org.eclipse.che.api.auth.shared.dto.OAuthToken;
 import org.eclipse.che.api.core.ApiException;
+import org.eclipse.che.api.core.BadRequestException;
 import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.ServerException;
 import org.eclipse.che.api.user.server.dao.User;
@@ -158,7 +158,7 @@ public class OAuthLoginServlet extends HttpServlet {
                                                      handler.generateBearerToken(email, findAvailableUsername(email), profileInfo)).build();
 
                 resp.sendRedirect(uri.toString());
-            } catch (InputDataException e) {
+            } catch (BadRequestException e) {
                 throw new ServletException(e.getLocalizedMessage(), e);
             }
         }

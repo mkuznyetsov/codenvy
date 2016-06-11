@@ -23,6 +23,7 @@ import com.codenvy.api.permission.server.filter.RemovePermissionsFilter;
 import com.codenvy.api.permission.server.filter.SetPermissionsFilter;
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Names;
 
 import org.bson.codecs.Codec;
 import org.bson.codecs.configuration.CodecProvider;
@@ -40,7 +41,14 @@ public class PermissionsModule extends AbstractModule {
         bind(GetPermissionsFilter.class);
 
         //Creates empty multibinder to avoid error during container starting
-        Multibinder.newSetBinder(binder(), PermissionsDomain.class, CommonDomains.class);
+        Multibinder.newSetBinder(binder(),
+                                 String.class,
+                                 Names.named(SystemDomain.SYSTEM_DOMAIN_ACTIONS));
+
+        final Multibinder<AbstractPermissionsDomain> permissionsDomainMultibinder = Multibinder.newSetBinder(binder(),
+                                                                                                             AbstractPermissionsDomain.class,
+                                                                                                             CommonDomains.class);
+        permissionsDomainMultibinder.addBinding().to(SystemDomain.class);
 
         Multibinder<PermissionsStorage> storages = Multibinder.newSetBinder(binder(),
                                                                             PermissionsStorage.class);

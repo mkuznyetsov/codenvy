@@ -35,10 +35,6 @@ public class InstallationManagerServerServletModule extends ServletModule {
         bindConstant().annotatedWith(Names.named("auth.sso.login_page_url")).to("/site/login");
         bindConstant().annotatedWith(Names.named("auth.sso.cookies_disabled_error_page_url")).to("/site/error/error-cookies-disabled");
 
-        bind(com.codenvy.auth.sso.client.WebAppClientUrlExtractor.class);
-        bind(com.codenvy.auth.sso.client.token.ChainedTokenExtractor.class);
-        bind(com.codenvy.auth.sso.client.TokenHandler.class).to(com.codenvy.auth.sso.client.RecoverableTokenHandler.class);
-
         filterRegex("/(?!_sso/).*$").through(LoginFilter.class);
         install(new SsoClientServletModule());
         serve("/*").with(GuiceEverrestServlet.class);

@@ -14,7 +14,7 @@
  */
 package com.codenvy.api.workspace.server;
 
-import com.codenvy.api.permission.server.PermissionsDomain;
+import com.codenvy.api.permission.server.AbstractPermissionsDomain;
 import com.codenvy.api.permission.server.PermissionsImpl;
 import com.codenvy.api.workspace.server.dao.WorkerDao;
 import com.codenvy.api.workspace.server.model.WorkerImpl;
@@ -127,7 +127,7 @@ public class WorkspacePermissionStorageTest {
 
     @Test
     public void shouldReturnWorkspaceDomain() {
-        Set<PermissionsDomain> supportedDomains = permissionStorage.getDomains();
+        Set<AbstractPermissionsDomain> supportedDomains = permissionStorage.getDomains();
 
         assertEquals(supportedDomains, ImmutableSet.of(new WorkspaceDomain()));
     }

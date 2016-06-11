@@ -14,25 +14,24 @@
  */
 package com.codenvy.auth.sso.server;
 
-import org.eclipse.che.api.auth.AuthenticationException;
-
 import com.codenvy.api.dao.authentication.AccessTicket;
 import com.codenvy.api.dao.authentication.CookieBuilder;
 import com.codenvy.api.dao.authentication.TicketManager;
 import com.codenvy.api.dao.authentication.TokenGenerator;
 import com.codenvy.auth.sso.server.handler.BearerTokenAuthenticationHandler;
-import com.codenvy.auth.sso.server.organization.UserCreator;
 import com.codenvy.auth.sso.server.organization.UserCreationValidator;
+import com.codenvy.auth.sso.server.organization.UserCreator;
 import com.codenvy.mail.MailSenderClient;
 import com.codenvy.mail.shared.dto.AttachmentDto;
 import com.codenvy.mail.shared.dto.EmailBeanDto;
 import com.google.common.io.Files;
 
+import org.eclipse.che.api.auth.AuthenticationException;
 import org.eclipse.che.api.core.ApiException;
+import org.eclipse.che.api.user.server.UserNameValidator;
 import org.eclipse.che.api.user.server.dao.User;
 import org.eclipse.che.commons.lang.Deserializer;
 import org.eclipse.che.commons.subject.Subject;
-
 import org.eclipse.che.commons.subject.SubjectImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +57,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static javax.ws.rs.core.MediaType.TEXT_HTML;
+import static org.eclipse.che.api.user.server.UserNameValidator.normalizeUserName;
 import static org.eclipse.che.commons.lang.IoUtil.getResource;
 import static org.eclipse.che.commons.lang.IoUtil.readAndCloseQuietly;
 import static org.eclipse.che.dto.server.DtoFactory.newDto;
@@ -65,7 +65,6 @@ import static org.eclipse.che.dto.server.DtoFactory.newDto;
 
 /**
  * Service to authenticate users using bearer tokens.
- * <p/>
  *
  * @author Alexander Garagatyi
  * @author Sergey Kabashniuk
@@ -126,14 +125,13 @@ public class BearerTokenAuthenticationService {
         }
         Map<String, String> payload = handler.getPayload(credentials.getToken());
         handler.authenticate(credentials.getToken());
-        final String username =  payload.get("username");
+        final String username = normalizeUserName(payload.get("username"));
         try {
             User user = userCreator.createUser(payload.get("email"), username, payload.get("firstName"), payload.get("lastName"));
             final Subject subject = new SubjectImpl(user.getName(),
-                                                             user.getId(),
-                                                             null,
-                                                             Collections.<String>emptyList(),
-                                                             true);
+                                                    user.getId(),
+                                                    null,
+                                                    true);
 
             Response.ResponseBuilder builder = Response.ok();
             if (tokenAccessCookie != null) {
@@ -190,12 +188,8 @@ public class BearerTokenAuthenticationService {
     public Response validate(ValidationData validationData, @Context UriInfo uriInfo)
             throws ApiException, MessagingException, IOException {
 
-        try {
-            inputDataValidator.validateUserMail(validationData.getEmail());
-            creationValidator.ensureUserCreationAllowed(validationData.getEmail(), validationData.getUsername());
-        } catch (InputDataException e) {
-            return Response.status(500).entity(e.getMessage()).build();
-        }
+        inputDataValidator.validateUserMail(validationData.getEmail());
+        creationValidator.ensureUserCreationAllowed(validationData.getEmail(), validationData.getUsername());
 
         Map<String, String> props = new HashMap<>();
         props.put("logo.cid", "codenvyLogo");

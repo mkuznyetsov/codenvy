@@ -90,7 +90,6 @@ public class MachineLoginFilterTest {
         machineSubject = new SubjectImpl(USERNAME,
                                          USER_ID,
                                          MACHINE_TOKEN,
-                                         null,
                                          false);
     }
 
@@ -123,7 +122,7 @@ public class MachineLoginFilterTest {
     @Test
     public void shouldProcessingRequestWithAliveSessionAndConfiguredPrincipal() throws Exception {
         // mocking of session principal
-        final Subject subject = new SubjectImpl(USERNAME, USER_ID, MACHINE_TOKEN, Collections.emptyList(), false);
+        final Subject subject = new SubjectImpl(USERNAME, USER_ID, MACHINE_TOKEN, false);
         when(sessionMock.getAttribute("principal")).thenReturn(subject);
         final HttpServletRequest requestMock = getRequestMock(sessionMock, MACHINE_TOKEN);
         machineLoginFilter.doFilter(requestMock, servletResponseMock, chainMock);

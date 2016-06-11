@@ -26,6 +26,8 @@ import org.everrest.core.resource.GenericMethodResource;
 
 import javax.ws.rs.Path;
 
+import static com.codenvy.api.permission.server.AbstractPermissionsDomain.SET_PERMISSIONS;
+
 /**
  * Restricts access to setting permissions of instance by users' setPermissions permission
  *
@@ -43,7 +45,7 @@ public class SetPermissionsFilter extends CheMethodInvokerFilter {
 
             if (!EnvironmentContext.getCurrent().getSubject().hasPermission(permissions.getDomain(),
                                                                          permissions.getInstance(),
-                                                                         "setPermissions")) {
+                                                                            SET_PERMISSIONS)) {
                 throw new ForbiddenException("User can't edit permissions for this instance");
             }
 

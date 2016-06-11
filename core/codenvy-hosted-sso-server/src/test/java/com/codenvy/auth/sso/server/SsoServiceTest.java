@@ -31,9 +31,6 @@ import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
-import java.util.HashSet;
-
 import static com.jayway.restassured.RestAssured.given;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -50,8 +47,6 @@ public class SsoServiceTest {
     AuthenticationExceptionMapper exceptionMapper;
     @Mock
     TicketManager              ticketManager;
-    @Mock
-    RolesExtractorRegistry     rolesExtractor;
     @Mock
     SecureRandomTokenGenerator uniqueTokenGenerator;
     @Mock
@@ -85,16 +80,14 @@ public class SsoServiceTest {
     @Test
     public void shouldValidUserIfTokenIsValid() {
         //given
-        Subject principal = new SubjectImpl("someuser", "132", "t1", null, false);
+        Subject principal = new SubjectImpl("someuser", "132", "t1", false);
         AccessTicket ticket = new AccessTicket("t1", principal, "default");
         SubjectDto user = DtoFactory.newDto(SubjectDto.class)
-                                 .withName(principal.getUserName())
-                                 .withId(principal.getUserId()).withToken(principal.getToken())
-                                 .withRoles(Arrays.asList("workspace/admin", "account/owner"))
-                                 .withTemporary(false);
+                                    .withName(principal.getUserName())
+                                    .withId(principal.getUserId()).withToken(principal.getToken())
+                                    .withTemporary(false);
         when(ticketManager.getAccessTicket(eq("t1"))).thenReturn(ticket);
-        when(rolesExtractor.getRoles(eq(ticket)))
-                .thenReturn(new HashSet<>(Arrays.asList("workspace/admin", "account/owner")));
+
         //when
         final Response response = given()
                 .pathParam("token", "t1")
@@ -126,7 +119,7 @@ public class SsoServiceTest {
     @Test
     public void shouldUnregisterClientByTokenAndUrl() {
         //given
-        AccessTicket ticket = new AccessTicket("t1", new SubjectImpl("someuser", "132", "t1", null, false), "default");
+        AccessTicket ticket = new AccessTicket("t1", new SubjectImpl("someuser", "132", "t1", false), "default");
         ticket.registerClientUrl("http://dev.box.com/api");
         when(ticketManager.getAccessTicket(eq("t1"))).thenReturn(ticket);
         //when

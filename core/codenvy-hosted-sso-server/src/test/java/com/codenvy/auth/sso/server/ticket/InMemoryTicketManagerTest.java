@@ -30,7 +30,7 @@ import static org.testng.Assert.assertNull;
 
 public class InMemoryTicketManagerTest {
     private final static String TOKEN = "123456789";
-    Subject subjectPrincipal = new SubjectImpl("user", "123", "t1", Collections.<String>emptyList(), false);
+    Subject subjectPrincipal = new SubjectImpl("user", "123", "t1", false);
 
 
     @Test

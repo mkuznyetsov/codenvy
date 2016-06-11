@@ -120,7 +120,7 @@ public class TestRepositoryService extends BaseTest {
                                                   saasUserServiceProxy,
                                                   mockEventLogger);
 
-        when(mockUserManager.getCurrentUser()).thenReturn(new SubjectImpl("name", TEST_USER_ID, "token", Collections.<String>emptyList(), false));
+        when(mockUserManager.getCurrentUser()).thenReturn(new SubjectImpl("name", TEST_USER_ID, "token", false));
         super.setUp();
     }
 
@@ -259,103 +259,9 @@ public class TestRepositoryService extends BaseTest {
     }
 
     @Test
-    public void testUploadDownloadSnapshotVersion() throws Exception {
-        Path tmp = Paths.get("target/tmp-1.0.1.txt");
-        Files.copy(new ByteArrayInputStream("content".getBytes()), tmp, StandardCopyOption.REPLACE_EXISTING);
-
-        Response response = given()
-                .auth().basic(JettyHttpServer.ADMIN_USER_NAME, JettyHttpServer.ADMIN_USER_PASSWORD).when()
-                .multiPart(tmp.toFile()).post(JettyHttpServer.SECURE_PATH + "/repository/upload/codenvy/1.0.1-SNAPSHOT");
-        assertEquals(response.statusCode(), OK_RESPONSE.getStatus());
-
-        response = given()
-                .auth().basic(JettyHttpServer.ADMIN_USER_NAME, JettyHttpServer.ADMIN_USER_PASSWORD).when()
-                .get("/repository/public/download/codenvy");
-        assertEquals(response.statusCode(), OK_RESPONSE.getStatus());
-        assertEquals(IOUtils.toString(response.body().asInputStream()), "content");
-    }
-
-    @Test
-    public void testUploadSnapshotVersion() throws Exception {
-        Path tmp = Paths.get("target/tmp-1.0.1.txt");
-        Files.copy(new ByteArrayInputStream("content".getBytes()), tmp, StandardCopyOption.REPLACE_EXISTING);
-
-        Response response = given()
-                .auth().basic(JettyHttpServer.ADMIN_USER_NAME, JettyHttpServer.ADMIN_USER_PASSWORD).when()
-                .multiPart(tmp.toFile()).post(JettyHttpServer.SECURE_PATH + "/repository/upload/codenvy/1.0.1-SNAPSHOT");
-
-        assertEquals(response.statusCode(), OK_RESPONSE.getStatus());
-
-        Path artifact = Paths.get("target", "download", "codenvy", "1.0.1-SNAPSHOT", "tmp-1.0.1.txt");
-        assertEquals(FileUtils.readFileToString(artifact.toFile()), "content");
-        assertTrue(Files.exists(artifact));
-
-        Path propertiesFile = Paths.get("target", "download", "codenvy", "1.0.1-SNAPSHOT", ArtifactStorage.PROPERTIES_FILE);
-        assertTrue(Files.exists(propertiesFile));
-
-        Properties properties = new Properties();
-        properties.load(Files.newInputStream(propertiesFile));
-        assertEquals(properties.size(), 3);
-        assertEquals(properties.get(VERSION_PROPERTY), "1.0.1-SNAPSHOT");
-        assertEquals(properties.get(FILE_NAME_PROPERTY), "tmp-1.0.1.txt");
-        assertEquals(properties.get(ARTIFACT_PROPERTY), "codenvy");
-    }
-
-
-    @Test
-    public void testUpload() throws Exception {
-        Path tmp = Paths.get("target/tmp-1.0.1.txt");
-        Files.copy(new ByteArrayInputStream("content".getBytes()), tmp, StandardCopyOption.REPLACE_EXISTING);
-
-        Response response = given()
-                .auth().basic(JettyHttpServer.ADMIN_USER_NAME, JettyHttpServer.ADMIN_USER_PASSWORD).when()
-                .multiPart(tmp.toFile()).post(JettyHttpServer.SECURE_PATH + "/repository/upload/codenvy/1.0.1?revision=abcd&build-time=20140930");
-
-        assertEquals(response.statusCode(), OK_RESPONSE.getStatus());
-
-        Path artifact = Paths.get("target", "download", "codenvy", "1.0.1", "tmp-1.0.1.txt");
-        assertEquals(FileUtils.readFileToString(artifact.toFile()), "content");
-        assertTrue(Files.exists(artifact));
-
-        Path propertiesFile = Paths.get("target", "download", "codenvy", "1.0.1", ArtifactStorage.PROPERTIES_FILE);
-        assertTrue(Files.exists(propertiesFile));
-
-        Properties properties = new Properties();
-        properties.load(Files.newInputStream(propertiesFile));
-        assertEquals(properties.size(), 4);
-        assertEquals(properties.get(VERSION_PROPERTY), "1.0.1");
-        assertEquals(properties.get(FILE_NAME_PROPERTY), "tmp-1.0.1.txt");
-        assertEquals(properties.get(BUILD_TIME_PROPERTY), "20140930");
-        assertEquals(properties.get(ARTIFACT_PROPERTY), "codenvy");
-    }
-
-    @Test
-    public void testUploadErrorIfVersionHasBadFormat() throws Exception {
-        Path tmp = Paths.get("target/tmp");
-        Files.copy(new ByteArrayInputStream("content".getBytes()), tmp, StandardCopyOption.REPLACE_EXISTING);
-
-        Response response = given()
-                .auth().basic(JettyHttpServer.ADMIN_USER_NAME, JettyHttpServer.ADMIN_USER_PASSWORD).when()
-                .multiPart(tmp.toFile()).post(JettyHttpServer.SECURE_PATH + "/repository/upload/codenvy-1.01.1/1.01.1");
-
-        assertEquals(response.statusCode(), javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-    }
-
-    @Test
-    public void testUploadErrorIfNoStream() throws Exception {
-        Files.copy(new ByteArrayInputStream("content".getBytes()), Paths.get("target/tmp"), StandardCopyOption.REPLACE_EXISTING);
-
-        Response response = given()
-                .auth().basic(JettyHttpServer.ADMIN_USER_NAME, JettyHttpServer.ADMIN_USER_PASSWORD).when()
-                .post(JettyHttpServer.SECURE_PATH + "/repository/upload/codenvy-1.01.1/1.01.1");
-
-        assertEquals(response.statusCode(), javax.ws.rs.core.Response.Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
-    }
-
-    @Test
     public void testSendNotificationLetterGetEmailFromName() throws Exception {
         repositoryService
-                .sendNotificationLetter("accountId", new SubjectImpl("name@codenvy.com", "id", "token", Collections.<String>emptyList(), false));
+                .sendNotificationLetter("accountId", new SubjectImpl("name@codenvy.com", "id", "token", false));
         verify(mockMailUtil).sendNotificationLetter("accountId", "name@codenvy.com");
     }
 
@@ -363,7 +269,7 @@ public class TestRepositoryService extends BaseTest {
     public void testSendNotificationLetterGetEmailFromRequest() throws Exception {
         doReturn("{\"email\": \"userEmail\"}").when(mockHttpTransport).doGet(endsWith("/user"), eq("token"));
         repositoryService
-                .sendNotificationLetter("accountId", new SubjectImpl("name", "id", "token", Collections.<String>emptyList(), false));
+                .sendNotificationLetter("accountId", new SubjectImpl("name", "id", "token", false));
         verify(mockMailUtil).sendNotificationLetter("accountId", "userEmail");
     }
 
@@ -397,7 +303,7 @@ public class TestRepositoryService extends BaseTest {
         doReturn(testUserIp).when(requestContext).getRemoteAddr();
 
         UserManager spyUserManager = spy(new UserManager());
-        when(spyUserManager.getCurrentUser()).thenReturn(new SubjectImpl(UserManager.ANONYMOUS_USER_NAME, TEST_USER_ID, "token", Collections.<String>emptyList(), false));
+        when(spyUserManager.getCurrentUser()).thenReturn(new SubjectImpl(UserManager.ANONYMOUS_USER_NAME, TEST_USER_ID, "token", false));
 
         repositoryService = new RepositoryService("",
                                                   spyUserManager,
@@ -435,7 +341,7 @@ public class TestRepositoryService extends BaseTest {
         doReturn(testUserIp).when(requestContext).getRemoteAddr();
 
         UserManager spyUserManager = spy(new UserManager());
-        when(spyUserManager.getCurrentUser()).thenReturn(new SubjectImpl(ANY_NAME, TEST_USER_ID, "token", Collections.<String>emptyList(), false));
+        when(spyUserManager.getCurrentUser()).thenReturn(new SubjectImpl(ANY_NAME, TEST_USER_ID, "token", false));
 
         repositoryService = new RepositoryService("",
                                                   spyUserManager,

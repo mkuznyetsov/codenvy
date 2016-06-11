@@ -14,7 +14,7 @@
  */
 package com.codenvy.api.workspace.server.recipe;
 
-import com.codenvy.api.permission.server.PermissionsDomain;
+import com.codenvy.api.permission.server.AbstractPermissionsDomain;
 import com.codenvy.api.permission.server.PermissionsImpl;
 import com.codenvy.api.permission.server.dao.PermissionsStorage;
 import com.codenvy.api.permission.shared.Permissions;
@@ -45,8 +45,8 @@ import java.util.stream.Collectors;
  */
 @Singleton
 public class RecipePermissionStorage implements PermissionsStorage {
-    private final Set<PermissionsDomain> supportedDomain;
-    private final RecipeDao              recipeDao;
+    private final Set<AbstractPermissionsDomain> supportedDomain;
+    private final RecipeDao                      recipeDao;
 
     @Inject
     public RecipePermissionStorage(RecipeDao recipeDao) {
@@ -55,7 +55,7 @@ public class RecipePermissionStorage implements PermissionsStorage {
     }
 
     @Override
-    public Set<PermissionsDomain> getDomains() {
+    public Set<AbstractPermissionsDomain> getDomains() {
         return supportedDomain;
     }
 

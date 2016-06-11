@@ -16,6 +16,7 @@ package com.codenvy.auth.sso.server;
 
 import com.google.inject.name.Named;
 
+import org.eclipse.che.api.core.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,23 +91,23 @@ public class InputDataValidator {
         }
     }
 
-    public void validateUserMail(String userMail) throws InputDataException {
+    public void validateUserMail(String userMail) throws BadRequestException {
         if (userMail == null || userMail.isEmpty()) {
-            throw new InputDataException("User mail can't be null or ''");
+            throw new BadRequestException("User mail can't be null or ''");
         }
 
         try {
             InternetAddress address = new InternetAddress(userMail);
             address.validate();
         } catch (AddressException e) {
-            throw new InputDataException(
-                    "E-Mail validation failed. Please check the format of your e-mail address.", e);
+            throw new BadRequestException(
+                    "E-Mail validation failed. Please check the format of your e-mail address.");
         }
 
         // Check blacklist
         for (String current : emailBlackList) {
             if (userMail.endsWith(current)) {
-                throw new InputDataException("User mail " + userMail + " is forbidden.");
+                throw new BadRequestException("User mail " + userMail + " is forbidden.");
             }
         }
     }

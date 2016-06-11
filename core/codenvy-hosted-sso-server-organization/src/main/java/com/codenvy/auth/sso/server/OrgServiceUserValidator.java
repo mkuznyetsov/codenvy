@@ -16,6 +16,7 @@ package com.codenvy.auth.sso.server;
 
 import com.codenvy.auth.sso.server.organization.UserCreationValidator;
 
+import org.eclipse.che.api.core.BadRequestException;
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.ServerException;
@@ -25,6 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.eclipse.che.api.user.server.UserNameValidator.isValidUserName;
 
 /**
  * @author Sergii Kabashniuk
@@ -42,17 +44,21 @@ public class OrgServiceUserValidator implements UserCreationValidator {
     }
 
     @Override
-    public void ensureUserCreationAllowed(String email, String userName) throws ConflictException, ServerException {
+    public void ensureUserCreationAllowed(String email, String userName) throws ConflictException, BadRequestException, ServerException {
         if (!userSelfCreationAllowed) {
             throw new ConflictException("Currently only admins can create accounts. Please contact our Admin Team for further info.");
         }
 
         if (isNullOrEmpty(email)) {
-            throw new IllegalArgumentException("Email cannot be empty or null");
+            throw new BadRequestException("Email cannot be empty or null");
         }
 
         if (isNullOrEmpty(userName)) {
-            throw new IllegalArgumentException("User name cannot be empty or null");
+            throw new BadRequestException("User name cannot be empty or null");
+        }
+
+        if (!isValidUserName(userName)) {
+            throw new BadRequestException("User name must contain letters and digits only");
         }
 
         try {

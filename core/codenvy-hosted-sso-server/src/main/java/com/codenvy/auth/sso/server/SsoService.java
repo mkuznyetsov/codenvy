@@ -68,7 +68,6 @@ public class SsoService {
     private static final Logger LOG = LoggerFactory.getLogger(SsoService.class);
 
     private final TicketManager          ticketManager;
-    private final RolesExtractorRegistry rolesExtractorRegistry;
     private final UserCreator            userCreator;
     private final TokenGenerator         uniqueTokenGenerator;
     private final CookieBuilder          cookieBuilder;
@@ -76,13 +75,11 @@ public class SsoService {
 
     @Inject
     public SsoService(TicketManager ticketManager,
-                      RolesExtractorRegistry rolesExtractorRegistry,
                       UserCreator userCreator,
                       TokenGenerator uniqueTokenGenerator,
                       CookieBuilder cookieBuilder,
                       @Named("auth.sso.login_page_url") String loginPage) {
         this.ticketManager = ticketManager;
-        this.rolesExtractorRegistry = rolesExtractorRegistry;
         this.userCreator = userCreator;
         this.uniqueTokenGenerator = uniqueTokenGenerator;
         this.cookieBuilder = cookieBuilder;
@@ -113,13 +110,10 @@ public class SsoService {
         } else {
             accessTicket.registerClientUrl(clientUrl);
 
-
-            Set<String> roles = rolesExtractorRegistry.getRoles(accessTicket);
             return DtoFactory.newDto(SubjectDto.class)
                              .withName(accessTicket.getPrincipal().getUserName())
                              .withId(accessTicket.getPrincipal().getUserId())
-                             .withRoles(new ArrayList<>(roles))
-                             .withTemporary(roles.contains("temp_user"))
+                             .withTemporary(false) //TODO Fix when temporary users will be supported in 4.x
                              .withToken(accessTicket.getAccessToken());
         }
     }
@@ -181,7 +175,6 @@ public class SsoService {
                 final Subject anonymousSubject = new SubjectImpl(user.getName(),
                                                                  user.getId(),
                                                                  null,
-                                                                 Collections.<String>emptyList(),
                                                                  true);
 
                 final AccessTicket ticket = new AccessTicket(uniqueTokenGenerator.generate(), anonymousSubject, "anonymous");

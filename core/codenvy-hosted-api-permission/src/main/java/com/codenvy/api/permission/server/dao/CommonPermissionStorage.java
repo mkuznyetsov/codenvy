@@ -14,7 +14,7 @@
  */
 package com.codenvy.api.permission.server.dao;
 
-import com.codenvy.api.permission.server.PermissionsDomain;
+import com.codenvy.api.permission.server.AbstractPermissionsDomain;
 import com.codenvy.api.permission.server.PermissionsImpl;
 import com.codenvy.api.permission.shared.Permissions;
 import com.google.common.collect.ImmutableMap;
@@ -52,7 +52,7 @@ import static com.mongodb.client.model.Filters.in;
  * <pre>
  *     Multibinder<PermissionsDomain> multibinder = Multibinder.newSetBinder(binder(), PermissionsDomain.class, CommonDomains.class);
  *     multibinder.addBinding().toInstance(new PermissionsDomain("myDomain",
- *                                                               new HashSet&lt;&gt;(Arrays.asList("read", "write", "use", "setPermissions"))));
+ *                                                               new HashSet&lt;&gt;(Arrays.asList("read", "write", "use"))));
  * </pre>
  *
  * <p>Permissions collection document scheme:
@@ -77,23 +77,23 @@ import static com.mongodb.client.model.Filters.in;
 public class CommonPermissionStorage implements PermissionsStorage {
     private final MongoCollection<PermissionsImpl> collection;
 
-    private final Map<String, PermissionsDomain> idToDomain;
+    private final Map<String, AbstractPermissionsDomain> idToDomain;
 
     @Inject
     public CommonPermissionStorage(@Named("mongo.db.organization") MongoDatabase database,
                                    @Named("organization.storage.db.permission.collection") String collectionName,
-                                   @CommonDomains Set<PermissionsDomain> permissionsDomains) throws IOException {
+                                   @CommonDomains Set<AbstractPermissionsDomain> permissionsDomains) throws IOException {
         collection = database.getCollection(collectionName, PermissionsImpl.class);
         collection.createIndex(new Document("user", 1).append("domain", 1).append("instance", 1), new IndexOptions().unique(true));
 
-        final ImmutableMap.Builder<String, PermissionsDomain> mapBuilder = ImmutableMap.builder();
+        final ImmutableMap.Builder<String, AbstractPermissionsDomain> mapBuilder = ImmutableMap.builder();
         permissionsDomains.stream()
                           .forEach(domain -> mapBuilder.put(domain.getId(), domain));
         idToDomain = mapBuilder.build();
     }
 
     @Override
-    public Set<PermissionsDomain> getDomains() {
+    public Set<AbstractPermissionsDomain> getDomains() {
         return new HashSet<>(idToDomain.values());
     }
 

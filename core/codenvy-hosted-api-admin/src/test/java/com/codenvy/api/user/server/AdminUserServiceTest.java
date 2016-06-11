@@ -124,11 +124,6 @@ public class AdminUserServiceTest {
             }
 
             @Override
-            public boolean isMemberOf(String s) {
-                return false;
-            }
-
-            @Override
             public boolean hasPermission(String domain, String instance, String action) {
                 return false;
             }

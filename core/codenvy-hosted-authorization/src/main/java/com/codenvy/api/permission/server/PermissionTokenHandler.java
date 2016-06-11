@@ -17,8 +17,8 @@ package com.codenvy.api.permission.server;
 import com.codenvy.auth.sso.client.SsoClientPrincipal;
 import com.codenvy.auth.sso.client.TokenHandler;
 
-import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.ForbiddenException;
+import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.ServerException;
 import org.eclipse.che.commons.subject.Subject;
 import org.slf4j.Logger;
@@ -94,11 +94,6 @@ public class PermissionTokenHandler implements TokenHandler {
         }
 
         @Override
-        public boolean isMemberOf(String role) {
-            return baseSubject.isMemberOf(role);
-        }
-
-        @Override
         public boolean hasPermission(String domain, String instance, String action) {
             try {
                 return permissionChecker.hasPermission(getUserId(), domain, instance, action);
@@ -114,8 +109,11 @@ public class PermissionTokenHandler implements TokenHandler {
         @Override
         public void checkPermission(String domain, String instance, String action) throws ForbiddenException {
             if (!hasPermission(domain, instance, action)) {
-                throw new ForbiddenException("User is not authorized to perform " + action + " of " + domain
-                                             + " with id '" + instance + "'");
+                String message = "User is not authorized to perform " + action + " of " + domain;
+                if (instance != null) {
+                    message += " with id '" + instance + "'";
+                }
+                throw new ForbiddenException(message);
             }
         }
 

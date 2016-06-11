@@ -14,7 +14,6 @@
  */
 package com.codenvy.api.user.server;
 
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -30,16 +29,13 @@ import org.eclipse.che.api.core.rest.Service;
 import org.eclipse.che.api.core.rest.annotations.GenerateLink;
 import org.eclipse.che.api.user.server.dao.User;
 
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.che.api.user.server.DtoConverter.toDescriptor;
@@ -52,7 +48,6 @@ import static org.eclipse.che.api.user.server.LinksInjector.injectLinks;
  */
 @Api(value = "/admin/user", description = "Admin user manager")
 @Path("/admin/user")
-@RolesAllowed({"system/admin", "system/manager"})
 public class AdminUserService extends Service {
 
     private final AdminUserDao adminUserDao;
@@ -83,8 +78,8 @@ public class AdminUserService extends Service {
                    @ApiResponse(code = 400, message = "Bad Request"),
                    @ApiResponse(code = 500, message = "Internal Server Error")})
     public Response getAll(@ApiParam(value = "Max items") @QueryParam("maxItems") @DefaultValue("30") int maxItems,
-                           @ApiParam(value = "Skip count") @QueryParam("skipCount") @DefaultValue("0") int skipCount,
-                           @Context SecurityContext context) throws ServerException, BadRequestException {
+                           @ApiParam(value = "Skip count") @QueryParam("skipCount") @DefaultValue("0") int skipCount)
+            throws ServerException, BadRequestException {
         try {
             final Page<User> usersPage = adminUserDao.getAll(maxItems, skipCount);
             return Response.ok()

@@ -22,7 +22,6 @@ import org.eclipse.che.api.core.rest.HttpJsonRequestFactory;
 import org.eclipse.che.api.user.shared.dto.UserDescriptor;
 import org.eclipse.che.commons.env.EnvironmentContext;
 
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
@@ -58,8 +57,11 @@ public class MachineTokenService {
     }
 
     /**
-     * Generates the access token for current user for particular workspace.
-     * User must have sufficient workspace permissions to get the token.
+     * Gets the access token for current user for particular workspace with following rules:
+     * <ul>
+     *   <li>If workspace is started by this user, token was generated on startup time, this method will just return it.<li/>
+     *   <li>If workspace is started by other user, but current user has permissions to use it, token will be generated on demand.<li/>
+     * <ul/>
      *
      * @param wsId
      *        id of workspace to generate token for.
@@ -70,7 +72,6 @@ public class MachineTokenService {
     @GET
     @Path("/{wsId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed("user")
     public MachineTokenDto getMachineToken(@PathParam("wsId") String wsId) throws NotFoundException {
         final String userId = EnvironmentContext.getCurrent().getSubject().getUserId();
         return newDto(MachineTokenDto.class).withUserId(userId)
@@ -91,7 +92,6 @@ public class MachineTokenService {
     @GET
     @Path("/user/{token}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed("user")
     public UserDescriptor getUser(@PathParam("token") String token) throws ApiException, IOException {
         final String userId = registry.getUserId(token);
         return requestFactory.fromUrl(apiEndpoint + "/user/" + userId)

@@ -16,6 +16,7 @@ package com.codenvy.api.permission.server;
 
 import com.codenvy.api.permission.server.dao.PermissionsStorage;
 import com.codenvy.api.permission.shared.Permissions;
+import com.codenvy.api.permission.shared.PermissionsDomain;
 import com.google.common.collect.ImmutableSet;
 
 import org.eclipse.che.api.core.ConflictException;
@@ -29,8 +30,8 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
+import static com.codenvy.api.permission.server.AbstractPermissionsDomain.SET_PERMISSIONS;
 import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -73,7 +74,7 @@ public class PermissionManagerTest {
 
     @Test
     public void shouldBeAbleToStorePermissions() throws Exception {
-        final PermissionsImpl permissions = new PermissionsImpl("user", "test", "test123", singletonList("setPermissions"));
+        final PermissionsImpl permissions = new PermissionsImpl("user", "test", "test123", singletonList(SET_PERMISSIONS));
 
         permissionManager.storePermission(permissions);
 
@@ -83,7 +84,7 @@ public class PermissionManagerTest {
     @Test(expectedExceptions = ConflictException.class,
           expectedExceptionsMessageRegExp = "Can't edit permissions because there is not any another user with permission 'setPermissions'")
     public void shouldNotStorePermissionsWhenItRemoveLastSetPermissions() throws Exception {
-        when(permissionsStorage.exists("user", "test", "test123", "setPermissions")).thenReturn(true);
+        when(permissionsStorage.exists("user", "test", "test123", SET_PERMISSIONS)).thenReturn(true);
         when(permissionsStorage.getByInstance("test", "test123"))
                 .thenReturn(singletonList(new PermissionsImpl("user", "test", "test123", singletonList("delete"))));
 
@@ -92,7 +93,7 @@ public class PermissionManagerTest {
 
     @Test
     public void shouldNotCheckExistingSetPermissionsIfUserDoesNotHaveItAtAll() throws Exception {
-        when(permissionsStorage.exists("user", "test", "test123", "setPermissions")).thenReturn(false);
+        when(permissionsStorage.exists("user", "test", "test123", SET_PERMISSIONS)).thenReturn(false);
         when(permissionsStorage.getByInstance("test", "test123"))
                 .thenReturn(singletonList(new PermissionsImpl("user", "test", "test123", singletonList("delete"))));
 
@@ -111,7 +112,7 @@ public class PermissionManagerTest {
     @Test(expectedExceptions = ConflictException.class,
           expectedExceptionsMessageRegExp = "Can't remove permissions because there is not any another user with permission 'setPermissions'")
     public void shouldNotRemovePermissionsWhenItContainsLastSetPermissionsAction() throws Exception {
-        when(permissionsStorage.exists("user", "test", "test123", "setPermissions")).thenReturn(true);
+        when(permissionsStorage.exists("user", "test", "test123", SET_PERMISSIONS)).thenReturn(true);
         when(permissionsStorage.getByInstance("test", "test123"))
                 .thenReturn(singletonList(new PermissionsImpl("user", "test", "test123", singletonList("delete"))));
 
@@ -120,7 +121,7 @@ public class PermissionManagerTest {
 
     @Test
     public void shouldNotCheckExistingSetPermissionsIfUserDoesNotHaveItAtAllOnRemove() throws Exception {
-        when(permissionsStorage.exists("user", "test", "test123", "setPermissions")).thenReturn(false);
+        when(permissionsStorage.exists("user", "test", "test123", SET_PERMISSIONS)).thenReturn(false);
         when(permissionsStorage.getByInstance("test", "test123"))
                 .thenReturn(singletonList(new PermissionsImpl("user", "test", "test123", singletonList("delete"))));
 
@@ -164,29 +165,30 @@ public class PermissionManagerTest {
 
     @Test
     public void shouldBeAbleToDomains() throws Exception {
-        final Set<String> domains = permissionManager.getDomains();
+        final List<AbstractPermissionsDomain> domains = permissionManager.getDomains();
 
         assertEquals(domains.size(), 1);
-        assertTrue(domains.contains("test"));
+        assertTrue(domains.contains(new TestDomain()));
     }
 
     @Test
-    public void shouldBeAbleToDomainsActions() throws Exception {
-        final Set<String> domains = permissionManager.getDomainsActions("test");
+    public void shouldBeAbleToDomainActions() throws Exception {
+        final PermissionsDomain testDomain = permissionManager.getDomain("test");
+        final List<String> allowedActions = testDomain.getAllowedActions();
 
-        assertEquals(domains.size(), 6);
-        assertTrue(domains.containsAll(ImmutableSet.of("setPermissions", "readPermissions", "read", "write", "use", "delete")));
+        assertEquals(allowedActions.size(), 5);
+        assertTrue(allowedActions.containsAll(ImmutableSet.of(SET_PERMISSIONS, "read", "write", "use", "delete")));
     }
 
     @Test(expectedExceptions = NotFoundException.class,
           expectedExceptionsMessageRegExp = "Requested unsupported domain 'unsupported'")
     public void shouldThrowExceptionWhenRequestedUnsupportedDomain() throws Exception {
-        permissionManager.getDomainsActions("unsupported");
+        permissionManager.getDomain("unsupported");
     }
 
-    public class TestDomain extends PermissionsDomain {
+    public class TestDomain extends AbstractPermissionsDomain {
         public TestDomain() {
-            super("test", ImmutableSet.of("setPermissions", "readPermissions", "read", "write", "use", "delete"));
+            super("test", Arrays.asList("read", "write", "use", "delete"));
         }
     }
 }

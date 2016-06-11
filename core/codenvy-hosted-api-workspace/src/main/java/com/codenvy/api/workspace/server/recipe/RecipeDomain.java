@@ -14,13 +14,15 @@
  */
 package com.codenvy.api.workspace.server.recipe;
 
-import com.codenvy.api.permission.server.PermissionsDomain;
-import com.google.common.collect.ImmutableSet;
+import com.codenvy.api.permission.server.AbstractPermissionsDomain;
+import com.google.common.collect.ImmutableList;
 
 /**
+ * Domain for storing recipes' permissions
+ *
  * @author Sergii Leschenko
  */
-public class RecipeDomain extends PermissionsDomain {
+public class RecipeDomain extends AbstractPermissionsDomain {
     public static final String DOMAIN_ID = "recipe";
 
     public static final String READ   = "read";
@@ -28,10 +30,8 @@ public class RecipeDomain extends PermissionsDomain {
     public static final String DELETE = "delete";
 
     public RecipeDomain() {
-        super(DOMAIN_ID, ImmutableSet.of(SET_PERMISSIONS,
-                                         READ_PERMISSIONS,
-                                         READ,
-                                         UPDATE,
-                                         DELETE));
+        super(DOMAIN_ID, ImmutableList.of(READ,
+                                          UPDATE,
+                                          DELETE));
     }
 }

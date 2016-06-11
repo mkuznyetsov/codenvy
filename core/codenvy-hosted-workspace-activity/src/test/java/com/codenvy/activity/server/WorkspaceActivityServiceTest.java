@@ -59,7 +59,7 @@ public class WorkspaceActivityServiceTest {
     private static final String  SERVICE_PATH = "/activity";
     private static final String  USER_ID      = "user123";
     private static final String  WORKSPACE_ID = "workspace123";
-    private static final Subject TEST_USER    = new SubjectImpl("name", USER_ID, "token", null, false);
+    private static final Subject TEST_USER    = new SubjectImpl("name", USER_ID, "token", false);
     @Mock
     private WorkspaceActivityManager workspaceActivityManager;
 

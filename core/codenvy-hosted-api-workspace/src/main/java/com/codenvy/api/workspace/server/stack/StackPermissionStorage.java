@@ -14,7 +14,7 @@
  */
 package com.codenvy.api.workspace.server.stack;
 
-import com.codenvy.api.permission.server.PermissionsDomain;
+import com.codenvy.api.permission.server.AbstractPermissionsDomain;
 import com.codenvy.api.permission.server.PermissionsImpl;
 import com.codenvy.api.permission.server.dao.PermissionsStorage;
 import com.codenvy.api.permission.shared.Permissions;
@@ -44,8 +44,8 @@ import java.util.stream.Collectors;
  */
 @Singleton
 public class StackPermissionStorage implements PermissionsStorage {
-    private final Set<PermissionsDomain> supportedDomains;
-    private final StackDao               stackDao;
+    private final Set<AbstractPermissionsDomain> supportedDomains;
+    private final StackDao                       stackDao;
 
     @Inject
     public StackPermissionStorage(StackDao stackDao) {
@@ -54,7 +54,7 @@ public class StackPermissionStorage implements PermissionsStorage {
     }
 
     @Override
-    public Set<PermissionsDomain> getDomains() {
+    public Set<AbstractPermissionsDomain> getDomains() {
         return supportedDomains;
     }
 

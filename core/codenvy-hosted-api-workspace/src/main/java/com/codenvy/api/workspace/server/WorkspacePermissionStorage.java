@@ -14,7 +14,7 @@
  */
 package com.codenvy.api.workspace.server;
 
-import com.codenvy.api.permission.server.PermissionsDomain;
+import com.codenvy.api.permission.server.AbstractPermissionsDomain;
 import com.codenvy.api.permission.server.PermissionsImpl;
 import com.codenvy.api.permission.server.dao.PermissionsStorage;
 import com.codenvy.api.permission.shared.Permissions;
@@ -42,8 +42,8 @@ import java.util.stream.Collectors;
  */
 @Singleton
 public class WorkspacePermissionStorage implements PermissionsStorage {
-    private final Set<PermissionsDomain> supportedDomain;
-    private final WorkerDao              workerDao;
+    private final Set<AbstractPermissionsDomain> supportedDomain;
+    private final WorkerDao                      workerDao;
 
     @Inject
     public WorkspacePermissionStorage(WorkerDao workerDao) {
@@ -52,7 +52,7 @@ public class WorkspacePermissionStorage implements PermissionsStorage {
     }
 
     @Override
-    public Set<PermissionsDomain> getDomains() {
+    public Set<AbstractPermissionsDomain> getDomains() {
         return supportedDomain;
     }
 

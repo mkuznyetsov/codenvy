@@ -12,17 +12,29 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Codenvy S.A..
  */
-package com.codenvy.auth.sso.server;
+package com.codenvy.api.permission.shared;
 
-import com.codenvy.api.dao.authentication.AccessTicket;
-
-import java.util.Set;
+import java.util.List;
 
 /**
- * Add user roles to principal.
+ * Describes permissions domain
  *
- * @author Sergii Kabashniuk
+ * @author Sergii Leschenko
+ * @author gazarenkov
  */
-public interface RolesExtractor {
-    Set<String> extractRoles(AccessTicket ticketß);
+public interface PermissionsDomain {
+    /**
+     * @return id of permissions domain
+     */
+    String getId();
+
+    /**
+     * @return true if domain requires non nullable value for instance field or false otherwise
+     */
+    Boolean isInstanceRequired();
+
+    /**
+     * @return list actions which are allowed for domain
+     */
+    List<String> getAllowedActions();
 }

@@ -24,6 +24,9 @@ import org.everrest.core.resource.GenericMethodResource;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+
+import static com.codenvy.api.permission.server.AbstractPermissionsDomain.SET_PERMISSIONS;
 
 /**
  * Restricts access to removing permissions of instance by users' setPermissions permission
@@ -31,12 +34,12 @@ import javax.ws.rs.PathParam;
  * @author Sergii Leschenko
  */
 @Filter
-@Path("/permissions/{domain}/{instance}/{user}")
+@Path("/permissions/{domain}")
 public class RemovePermissionsFilter extends CheMethodInvokerFilter {
     @PathParam("domain")
     private String domain;
 
-    @PathParam("instance")
+    @QueryParam("instance")
     private String instance;
 
     @Override
@@ -44,7 +47,7 @@ public class RemovePermissionsFilter extends CheMethodInvokerFilter {
             throws UnauthorizedException, ForbiddenException, ServerException {
         final String methodName = genericMethodResource.getMethod().getName();
         if (methodName.equals("removePermissions")) {
-            if (!EnvironmentContext.getCurrent().getSubject().hasPermission(domain, instance, "setPermissions")) {
+            if (!EnvironmentContext.getCurrent().getSubject().hasPermission(domain, instance, SET_PERMISSIONS)) {
                 throw new ForbiddenException("User can't edit permissions for this instance");
             }
         }

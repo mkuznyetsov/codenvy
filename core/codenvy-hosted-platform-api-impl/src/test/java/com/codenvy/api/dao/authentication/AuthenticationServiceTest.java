@@ -100,7 +100,7 @@ public class AuthenticationServiceTest {
     public void shouldAuthenticateWithCorrectParams() throws Exception {
         //given
         when(handler.authenticate(eq("user@site.com"), eq("secret")))
-                .thenReturn(new SubjectImpl("user@site.com", "14433", "t11", Collections.<String>emptyList(), false));
+                .thenReturn(new SubjectImpl("user@site.com", "14433", "t11", false));
 
         doAnswer(new Answer<Object>() {
             @Override
@@ -216,7 +216,7 @@ public class AuthenticationServiceTest {
     public void shouldLogoutFirstIfUserAlreadyLoggedIn() throws Exception {
         //given
         when(handler.authenticate(eq("user@site.com"), eq("secret")))
-                .thenReturn(new SubjectImpl("user@site.com", "14433", "t111", Collections.<String>emptyList(), false));
+                .thenReturn(new SubjectImpl("user@site.com", "14433", "t111", false));
         when(oldPrincipal.getUserName()).thenReturn("old@site.com");
         doAnswer(new Answer<Object>() {
             @Override

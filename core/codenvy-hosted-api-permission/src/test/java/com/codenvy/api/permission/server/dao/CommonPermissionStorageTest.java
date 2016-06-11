@@ -14,7 +14,7 @@
  */
 package com.codenvy.api.permission.server.dao;
 
-import com.codenvy.api.permission.server.PermissionsDomain;
+import com.codenvy.api.permission.server.AbstractPermissionsDomain;
 import com.codenvy.api.permission.server.PermissionsImpl;
 import com.codenvy.api.permission.shared.Permissions;
 import com.github.fakemongo.Fongo;
@@ -211,9 +211,9 @@ public class CommonPermissionStorageTest {
                                    Arrays.asList("read", "write", "use", "delete"));
     }
 
-    public class TestDomain extends PermissionsDomain {
+    public class TestDomain extends AbstractPermissionsDomain {
         public TestDomain() {
-            super("test", ImmutableSet.of("read", "write", "use", "delete"));
+            super("test", Arrays.asList("read", "write", "use", "delete"));
         }
     }
 

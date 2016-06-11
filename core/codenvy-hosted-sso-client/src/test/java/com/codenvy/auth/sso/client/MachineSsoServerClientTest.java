@@ -38,7 +38,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
 
 /**
  * Tests for {@link MachineSsoServerClient}.
@@ -108,6 +107,5 @@ public class MachineSsoServerClientTest {
         assertEquals(sessionUser.getUserId(), user.getId());
         assertFalse(sessionUser.isTemporary());
         assertEquals(sessionUser.getToken(), token);
-        assertTrue(sessionUser.isMemberOf("user"));
     }
 }

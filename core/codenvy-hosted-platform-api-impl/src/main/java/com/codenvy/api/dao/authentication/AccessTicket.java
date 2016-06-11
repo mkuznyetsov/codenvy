@@ -77,11 +77,6 @@ public final class AccessTicket {
             }
 
             @Override
-            public boolean isMemberOf(String role) {
-                return principal.isMemberOf(role);
-            }
-
-            @Override
             public boolean hasPermission(String domain, String instance, String action) {
                 return principal.hasPermission(domain, instance, action);
             }

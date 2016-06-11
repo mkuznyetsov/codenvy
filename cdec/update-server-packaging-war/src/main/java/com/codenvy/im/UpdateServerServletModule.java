@@ -40,7 +40,8 @@ public class UpdateServerServletModule extends ServletModule {
         bind(com.codenvy.auth.sso.client.filter.RequestFilter.class).to(com.codenvy.auth.sso.client.filter.RegexpRequestFilter.class);
         bind(com.codenvy.auth.sso.client.TokenHandler.class).to(com.codenvy.auth.sso.client.RecoverableTokenHandler.class);
 
-        filterRegex("/(?!_sso/).*$").through(LoginFilter.class);
+        filterRegex("/(?!_sso/).*$",
+                    "/repository/download").through(LoginFilter.class);
         install(new SsoClientServletModule());
         serve("/*").with(GuiceEverrestServlet.class);
     }

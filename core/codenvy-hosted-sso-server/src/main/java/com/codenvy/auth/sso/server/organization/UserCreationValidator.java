@@ -15,6 +15,7 @@
 package com.codenvy.auth.sso.server.organization;
 
 
+import org.eclipse.che.api.core.BadRequestException;
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.ServerException;
 
@@ -29,13 +30,15 @@ public interface UserCreationValidator {
      * Ensure user and workspace name is eligible to validate email before workspace creation.
      *
      * @param email
-     *         - user email. Null or empty value should throw IllegalArgumentException.
+     *         - user email. Null or empty value should throw BadRequestException.
      * @param userName
-     *         -user name. Null or empty value should throw IllegalArgumentException.
+     *         - user name. Null or empty value should throw BadRequestException.
+     * @throws BadRequestException
+     *         - if user's email or name have incorrect values
      * @throws ConflictException
      *         - if user with given email or name cannot be created
      * @throws ServerException
      *         - if other error occurs
      */
-    void ensureUserCreationAllowed(String email, String userName) throws ConflictException, ServerException;
+    void ensureUserCreationAllowed(String email, String userName) throws BadRequestException, ConflictException, ServerException;
 }

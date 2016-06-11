@@ -95,7 +95,6 @@ public class MachineLoginFilter implements Filter {
             final Subject machineUser = new SubjectImpl(userDescriptor.getName(),
                                                         userDescriptor.getId(),
                                                         machineToken,
-                                                        null,
                                                         false);
             EnvironmentContext.getCurrent().setSubject(machineUser);
             final HttpSession httpSession = httpRequest.getSession(true);

@@ -14,51 +14,53 @@
  */
 package com.codenvy.user.interceptor;
 
-
-import com.codenvy.BaseInterceptorTest;
-import com.codenvy.mail.MailSenderClient;
-import com.codenvy.mail.shared.dto.EmailBeanDto;
 import com.codenvy.service.password.RecoveryStorage;
+import com.codenvy.user.CreationNotificationSender;
 
 import org.aopalliance.intercept.MethodInvocation;
 import org.eclipse.che.api.core.ConflictException;
-import org.eclipse.che.api.user.server.dao.User;
-import org.mockito.ArgumentCaptor;
+import org.eclipse.che.api.user.server.UserService;
+import org.eclipse.che.api.user.shared.dto.UserDescriptor;
+import org.eclipse.che.dto.server.DtoFactory;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import static javax.ws.rs.core.MediaType.TEXT_HTML;
-import static org.mockito.Matchers.anyString;
+import javax.ws.rs.core.Response;
+import java.lang.reflect.Method;
+
+import static com.codenvy.user.CreationNotificationSender.EMAIL_TEMPLATE_USER_CREATED_WITHOUT_PASSWORD;
+import static com.codenvy.user.CreationNotificationSender.EMAIL_TEMPLATE_USER_CREATED_WITH_PASSWORD;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
+/**
+ * Tests for {@link UserCreatorInterceptor}
+ *
+ * @author Sergii Leschenko
+ * @author Anatoliy Bazko
+ */
 @Listeners(value = {MockitoTestNGListener.class})
-public class CreateUserInterceptorTest extends BaseInterceptorTest {
+public class CreateUserInterceptorTest {
     @Mock
-    private MailSenderClient      mailSenderClient;
+    private MethodInvocation invocation;
     @Mock
-    private User                  user;
+    private RecoveryStorage  recoveryStorage;
     @Mock
-    private MethodInvocation      invocation;
+    private Response         response;
     @Mock
-    private RecoveryStorage       recoveryStorage;
+    private UserService      userService;
+    @Mock
+    CreationNotificationSender notificationSender;
+
     @InjectMocks
     private CreateUserInterceptor interceptor;
 
     private String recipient = "test@user.com";
-
-    @BeforeMethod
-    public void setup() throws Exception {
-        setInterceptorPrivateFieldValue(interceptor, "apiEndpoint", "http://localhost/api");
-        setInterceptorPrivateFieldValue(interceptor, "mailSender", "noreply@host");
-    }
 
     @Test(expectedExceptions = ConflictException.class)
     public void shouldNotSendEmailIfInvocationThrowsException() throws Throwable {
@@ -66,25 +68,46 @@ public class CreateUserInterceptorTest extends BaseInterceptorTest {
 
         interceptor.invoke(invocation);
 
-        verifyZeroInteractions(mailSenderClient);
+        verifyZeroInteractions(notificationSender);
     }
 
+
     @Test
-    public void shouldSendEmail() throws Throwable {
-        when(invocation.getArguments()).thenReturn(new Object[] {user});
-        when(user.getEmail()).thenReturn(recipient);
-        when(recoveryStorage.generateRecoverToken(anyString())).thenReturn("uuid");
-        ArgumentCaptor<EmailBeanDto> argument = ArgumentCaptor.forClass(EmailBeanDto.class);
+    public void shouldSendEmailWhenUserWasCreatedByUserServiceWithToken() throws Throwable {
+        // preparing user creator's method
+        final Method method = UserService.class.getMethod("create", UserDescriptor.class, String.class, Boolean.class);
+        when(invocation.getMethod()).thenReturn(method);
+
+        final Object[] invocationArgs = new Object[method.getParameterCount()];
+        invocationArgs[1] = "token123";
+        when(invocation.getArguments()).thenReturn(invocationArgs);
+
+        when(invocation.proceed()).thenReturn(response);
+        when(response.getEntity()).thenReturn(DtoFactory.newDto(UserDescriptor.class)
+                                                        .withEmail(recipient)
+                                                        .withName("user123"));
 
         interceptor.invoke(invocation);
 
-        verify(mailSenderClient).sendMail(argument.capture());
-        EmailBeanDto argumentCaptorValue = argument.getValue();
-        assertTrue(argumentCaptorValue.getAttachments().size() == 1);
-        assertTrue(!argumentCaptorValue.getBody().isEmpty());
-        assertEquals(argumentCaptorValue.getTo(), recipient);
-        assertEquals(argumentCaptorValue.getMimeType(), TEXT_HTML);
-        assertEquals(argumentCaptorValue.getFrom(), "noreply@host");
-        assertEquals(argumentCaptorValue.getSubject(), "Welcome To Codenvy");
+        verify(notificationSender).sendNotification(eq("user123"), eq(recipient), eq(EMAIL_TEMPLATE_USER_CREATED_WITHOUT_PASSWORD));
+    }
+
+    @Test
+    public void shouldSendEmailWhenUserWasCreatedByUserServiceWithDescriptor() throws Throwable {
+        // preparing user creator's method
+        final Method method = UserService.class.getMethod("create", UserDescriptor.class, String.class, Boolean.class);
+        when(invocation.getMethod()).thenReturn(method);
+
+        final Object[] invocationArgs = new Object[method.getParameterCount()];
+        when(invocation.getArguments()).thenReturn(invocationArgs);
+
+        when(invocation.proceed()).thenReturn(response);
+        when(response.getEntity()).thenReturn(DtoFactory.newDto(UserDescriptor.class)
+                                                        .withEmail(recipient)
+                                                        .withName("user123"));
+
+        interceptor.invoke(invocation);
+
+        verify(notificationSender).sendNotification(eq("user123"), eq(recipient), eq(EMAIL_TEMPLATE_USER_CREATED_WITH_PASSWORD));
     }
 }

@@ -37,7 +37,6 @@ import org.eclipse.che.dto.server.JsonStringMapImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -77,7 +76,6 @@ public class LicenseService {
     }
 
     @DELETE
-    @RolesAllowed({"system/admin"})
     @ApiOperation(value = "Deletes Codenvy license")
     @ApiResponses(value = {@ApiResponse(code = 202, message = "OK"),
                            @ApiResponse(code = 500, message = "Server error")})
@@ -94,7 +92,6 @@ public class LicenseService {
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowed({"system/admin"})
     @ApiOperation(value = "Gets Codenvy license")
     @ApiResponses(value = {@ApiResponse(code = 200, message = "OK"),
                            @ApiResponse(code = 409, message = "Invalid license"),
@@ -116,7 +113,6 @@ public class LicenseService {
 
     @POST
     @Consumes(MediaType.TEXT_PLAIN)
-    @RolesAllowed({"system/admin"})
     @ApiOperation(value = "Stores valid Codenvy license in the system")
     @ApiResponses(value = {@ApiResponse(code = 201, message = "OK"),
                            @ApiResponse(code = 409, message = "Invalid license"),
@@ -137,7 +133,6 @@ public class LicenseService {
     @GET
     @Path("/properties")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed({"system/admin"})
     @ApiOperation(value = "Loads Codenvy license properties")
     @ApiResponses(value = {@ApiResponse(code = 200, message = "OK"),
                            @ApiResponse(code = 404, message = "License not found"),

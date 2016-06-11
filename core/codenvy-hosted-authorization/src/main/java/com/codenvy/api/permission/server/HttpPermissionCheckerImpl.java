@@ -14,11 +14,13 @@
  */
 package com.codenvy.api.permission.server;
 
+import com.codenvy.api.permission.shared.dto.PermissionsDto;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.inject.name.Named;
 
+import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.ServerException;
 import org.eclipse.che.api.core.rest.HttpJsonRequestFactory;
 
@@ -38,12 +40,12 @@ import java.util.concurrent.TimeUnit;
  * @author Sergii Leschenko
  */
 @Singleton
-public class HttpPermissionChecker implements PermissionChecker {
+public class HttpPermissionCheckerImpl implements PermissionChecker {
     private final LoadingCache<Key, Set<String>> permissionsCache;
 
     @Inject
-    public HttpPermissionChecker(@Named("api.endpoint") String apiEndpoint,
-                                 HttpJsonRequestFactory requestFactory) {
+    public HttpPermissionCheckerImpl(@Named("api.endpoint") String apiEndpoint,
+                                     HttpJsonRequestFactory requestFactory) {
         //TODO mb make configurable size of cache and expiration time
         this.permissionsCache = CacheBuilder.newBuilder()
                                             .maximumSize(1000)
@@ -51,16 +53,24 @@ public class HttpPermissionChecker implements PermissionChecker {
                                             .build(new CacheLoader<Key, Set<String>>() {
                                                 @Override
                                                 public Set<String> load(Key key) throws Exception {
-                                                    final String getCurrentUsersPermissions = UriBuilder.fromUri(apiEndpoint)
-                                                                                                        .path(PermissionsService.class)
-                                                                                                        .path(PermissionsService.class,
-                                                                                                              "getUsersPermissions")
-                                                                                                        .build(key.domain, key.instance)
-                                                                                                        .toString();
-                                                    return new HashSet<>(requestFactory.fromUrl(getCurrentUsersPermissions)
-                                                                                       .useGetMethod()
-                                                                                       .request()
-                                                                                       .asList(String.class));
+                                                    UriBuilder currentUsersPermissions = UriBuilder.fromUri(apiEndpoint)
+                                                                                                   .path(PermissionsService.class)
+                                                                                                   .path(PermissionsService.class,
+                                                                                                         "getCurrentUsersPermissions");
+                                                    if (key.instance != null) {
+                                                        currentUsersPermissions.queryParam("instance", key.instance);
+                                                    }
+                                                    String userPermissionsUrl = currentUsersPermissions.build(key.domain).toString();
+                                                    try {
+                                                        PermissionsDto usersPermissions = requestFactory.fromUrl(userPermissionsUrl)
+                                                                                                        .useGetMethod()
+                                                                                                        .request().asDto(
+                                                                        PermissionsDto.class);
+                                                        return new HashSet<>(usersPermissions.getActions());
+                                                    } catch (NotFoundException e) {
+                                                        //user doesn't have permissions
+                                                        return new HashSet<>();
+                                                    }
                                                 }
                                             });
     }

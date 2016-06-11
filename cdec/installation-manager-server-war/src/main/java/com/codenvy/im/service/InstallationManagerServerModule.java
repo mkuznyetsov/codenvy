@@ -14,11 +14,15 @@
  */
 package com.codenvy.im.service;
 
+import com.codenvy.api.permission.server.PermissionChecker;
+import com.codenvy.auth.sso.client.TokenHandler;
 import com.codenvy.im.artifacts.Artifact;
 import com.codenvy.im.artifacts.CDECArtifact;
 import com.codenvy.im.artifacts.InstallManagerArtifact;
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Names;
+
 import org.eclipse.che.api.core.rest.ApiExceptionMapper;
 import org.eclipse.che.commons.schedule.executor.ScheduleModule;
 import org.eclipse.che.inject.DynaModule;
@@ -39,5 +43,16 @@ public class InstallationManagerServerModule extends AbstractModule {
 
         install(new ScheduleModule());
         install(new DocsModule());
+
+        bind(com.codenvy.auth.sso.client.WebAppClientUrlExtractor.class);
+        bind(com.codenvy.auth.sso.client.token.ChainedTokenExtractor.class);
+
+        bind(PermissionChecker.class).to(com.codenvy.api.permission.server.HttpPermissionCheckerImpl.class);
+
+        bind(TokenHandler.class).to(com.codenvy.api.permission.server.PermissionTokenHandler.class);
+        bind(TokenHandler.class).annotatedWith(Names.named("delegated.handler"))
+                                .to(com.codenvy.auth.sso.client.RecoverableTokenHandler.class);
+
+        bind(InstallationManagerPermissionsFilter.class);
     }
 }

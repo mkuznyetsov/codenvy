@@ -24,6 +24,7 @@ import {LoginCtrl} from './login/login.controller';
 import {AdminConfig} from './admin/admin-config';
 import {AccountConfig} from './account/details/account-config';
 import {CodenvyOnpremConfig} from './onprem/onprem-config';
+import {WorkspaceConfig} from './workspace/workspace-config';
 
 let initModule = angular.module('codenvyDashboard', ['ngAnimate', 'ngCookies', 'ngTouch', 'ngSanitize', 'braintree-angular', 'gavruk.card',
   'ngResource', 'ngRoute', 'ngPasswordStrength', 'ui.codemirror', 'ui.gravatar', 'userDashboard', 'ngMessages']);
@@ -53,8 +54,9 @@ initModule.config(['$routeProvider', ($routeProvider) => {
 }]);
 
 //add tasks to run
-initModule.run(['$rootScope', 'nagMessageService', 'cheUIElementsInjectorService',
-  ($rootScope, nagMessageService, cheUIElementsInjectorService) => {
+initModule.run(['$rootScope', 'nagMessageService', 'cheUIElementsInjectorService', 'workspaceDetailsService',
+  ($rootScope, nagMessageService, cheUIElementsInjectorService, workspaceDetailsService) => {
+    workspaceDetailsService.addSection('Share', '<share-workspace></share-workspace>', 'icon-ic_folder_shared_24px');
     $rootScope.$on('$viewContentLoaded', () => {
       nagMessageService.createLicenseMessage();
       cheUIElementsInjectorService.addElementForInjection('dashboardPageContent', 'recentFactories', '<cdvy-last-factories></cdvy-last-factories>');
@@ -179,4 +181,5 @@ new CodenvyComponentsConfig(instanceRegister);
 new FactoryConfig(instanceRegister);
 new AdminConfig(instanceRegister);
 new CodenvyOnpremConfig(instanceRegister);
-new AccountConfig(instanceRegister)
+new AccountConfig(instanceRegister);
+new WorkspaceConfig(instanceRegister);

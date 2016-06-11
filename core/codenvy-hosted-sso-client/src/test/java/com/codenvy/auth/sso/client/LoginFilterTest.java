@@ -63,7 +63,6 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
 /** Test related to @LoginFilter class. */
-@Test
 @Listeners(value = MockitoTestNGListener.class)
 public class LoginFilterTest {
 
@@ -231,7 +230,7 @@ public class LoginFilterTest {
         request.getSession().setAttribute("principal", new SsoClientPrincipal("token",
                                                                               "http://localhost:8080/ws/mypersonal" +
                                                                               ".Workspace",
-                                                                              new SubjectImpl("user@domain")
+                                                                              createSubject("user@domain")
         ));
         filter.init(filterConfig);
 
@@ -278,8 +277,7 @@ public class LoginFilterTest {
                 new MockHttpServletRequest("http://localhost:8080/ws/ws?token=t13f", null, 0, "GET", null);
 
         when(tokenExtractor.getToken(eq(request))).thenReturn("t13f");
-        when(ssoServerClient.getSubject(eq("t13f"), anyString())).thenReturn(
-                new SubjectImpl("user@domain"));
+        when(ssoServerClient.getSubject(eq("t13f"), anyString())).thenReturn(createSubject("user@domain"));
         //when
         filter.doFilter(request, response, chain);
 
@@ -297,16 +295,13 @@ public class LoginFilterTest {
                 new MockHttpServletRequest("http://localhost:8080/ws/ws?token=t13f", null, 0, "GET", null);
 
         when(tokenExtractor.getToken(eq(request))).thenReturn("t13f");
-        when(ssoServerClient.getSubject(eq("t13f"), anyString())).thenReturn(
-                new SubjectImpl("user@domain"));
-        when(ssoServerClient.getSubject(eq("t12f"), anyString())).thenReturn(
-                new SubjectImpl("Anonymous123@domain"));
+        when(ssoServerClient.getSubject(eq("t13f"), anyString())).thenReturn(createSubject("user@domain"));
+        when(ssoServerClient.getSubject(eq("t12f"), anyString())).thenReturn(createSubject("Anonymous123@domain"));
         when(clientUrlExtractor.getClientUrl(eq(request))).thenReturn("http://localhost:8080/ws/ws");
 
-        SsoClientPrincipal anonymous =
-                new SsoClientPrincipal("t12f",
-                                       "http://localhost:8080/ws/ws",
-                                       new SubjectImpl("Anonymous123@domain"));
+        SsoClientPrincipal anonymous = new SsoClientPrincipal("t12f",
+                                                              "http://localhost:8080/ws/ws",
+                                                              createSubject("Anonymous123@domain"));
         request.getSession().setAttribute("principal", anonymous);
 
         //when
@@ -346,12 +341,11 @@ public class LoginFilterTest {
         HttpServletRequest request = new MockHttpServletRequest("http://localhost:8080/ws/ws", null, 0, "GET", null);
 
         when(tokenExtractor.getToken(eq(request))).thenReturn("t13f");
-        when(ssoServerClient.getSubject(eq("t13f"), anyString())).thenReturn(
-                new SubjectImpl("user@domain"));
+        when(ssoServerClient.getSubject(eq("t13f"), anyString())).thenReturn(createSubject("user@domain"));
         when(clientUrlExtractor.getClientUrl(eq(request))).thenReturn("http://localhost:8080/ws/ws");
-        SsoClientPrincipal principal =
-                new SsoClientPrincipal("t13f", "http://localhost:8080/ws/ws",
-                                       new SubjectImpl("user@domain"));
+        SsoClientPrincipal principal = new SsoClientPrincipal("t13f",
+                                                              "http://localhost:8080/ws/ws",
+                                                              createSubject("user@domain"));
         request.getSession().setAttribute("principal", principal);
 
         //when
@@ -372,11 +366,10 @@ public class LoginFilterTest {
         //given
         HttpServletRequest request = new MockHttpServletRequest("http://localhost:8080/ws/ws", null, 0, "GET", null);
         when(tokenExtractor.getToken(eq(request))).thenReturn("t13f");
-        when(ssoServerClient.getSubject(eq("t13f"), anyString())).thenReturn(
-                new SubjectImpl("user@domain"));
+        when(ssoServerClient.getSubject(eq("t13f"), anyString())).thenReturn(createSubject("user@domain"));
         when(clientUrlExtractor.getClientUrl(eq(request))).thenReturn("http://localhost:8080/ws/ws");
         SsoClientPrincipal principal = new SsoClientPrincipal("t13f", "http://localhost:8080/ws/ws",
-                                                              new SubjectImpl("user@domain"));
+                                                              createSubject("user@domain"));
         request.getSession().setAttribute("principal", principal);
 
         //when
@@ -457,8 +450,11 @@ public class LoginFilterTest {
     }
 
     @Test
-    public void shouldFilterAsAnonymousIfPostRequestHasNoToken() throws IOException, ServletException {
+    public void shouldRespond401IfPostRequestHasNoToken() throws IOException, ServletException {
         //given
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        PrintWriter writer = new PrintWriter(bos);
+        when(response.getWriter()).thenReturn(writer);
         HttpServletRequest request =
                 spy(new MockHttpServletRequest("http://localhost:8080/ws/ws", null, 0, "POST", null));
 
@@ -466,18 +462,18 @@ public class LoginFilterTest {
         filter.doFilter(request, response, chain);
 
         //then
-        ArgumentCaptor<HttpServletRequest> captor = ArgumentCaptor.forClass(HttpServletRequest.class);
-        verify(chain).doFilter(captor.capture(), any(HttpServletResponse.class));
-        HttpServletRequest filterRequest = captor.getValue();
-        assertEquals(filterRequest.getUserPrincipal().getName(), Subject.ANONYMOUS.getUserName());
-        //verify(response).sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        assertEquals(new String(bos.toByteArray()), "{\"message\":\"User not authorized to call this method.\"}");
     }
 
     @Test
-    public void shouldFilterAsAnonymousIfGetRequestHasNoToken() throws IOException, ServletException {
+    public void shouldRespond401IfGetRequestHasNoToken() throws IOException, ServletException {
         //given
         HttpServletRequest request =
                 spy(new MockHttpServletRequest("http://localhost:8080/ws/ws", null, 0, "GET", null));
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        PrintWriter writer = new PrintWriter(bos);
+        when(response.getWriter()).thenReturn(writer);
 
         setFieldValue(filter, "tokenHandler", new NoUserInteractionTokenHandler(requestWrapper));
 
@@ -485,26 +481,8 @@ public class LoginFilterTest {
         filter.doFilter(request, response, chain);
 
         //then
-        ArgumentCaptor<HttpServletRequest> captor = ArgumentCaptor.forClass(HttpServletRequest.class);
-        verify(chain).doFilter(captor.capture(), any(HttpServletResponse.class));
-        HttpServletRequest filterRequest = captor.getValue();
-        assertEquals(filterRequest.getUserPrincipal().getName(), Subject.ANONYMOUS.getUserName());
-    }
-
-    @Test
-    public void shouldSetAnonymousIfRequestHasNoToken() throws IOException, ServletException {
-        //given
-        HttpServletRequest request =
-                spy(new MockHttpServletRequest("http://localhost:8080/ws/ws", null, 0, "GET", null));
-
-        //when
-        filter.doFilter(request, response, new FilterChain() {
-            @Override
-            public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
-                EnvironmentContext context = EnvironmentContext.getCurrent();
-                assertEquals(context.getSubject(), Subject.ANONYMOUS);
-            }
-        });
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        assertEquals(new String(bos.toByteArray()), "{\"message\":\"User not authorized to call this method.\"}");
     }
 
     @Test
@@ -574,8 +552,7 @@ public class LoginFilterTest {
                                            null, 0, "GET", null);
 
         when(tokenExtractor.getToken(eq(request))).thenReturn("t13f");
-        when(ssoServerClient.getSubject(eq("t13f"), anyString())).thenReturn(
-                new SubjectImpl("user@domain"));
+        when(ssoServerClient.getSubject(eq("t13f"), anyString())).thenReturn(createSubject("user@domain"));
         //when
         filter.doFilter(request, response, chain);
 
@@ -599,4 +576,7 @@ public class LoginFilterTest {
         verifyNoMoreInteractions(sessionStore, tokenExtractor, clientUrlExtractor, ssoServerClient);
     }
 
+    private SubjectImpl createSubject(String email) {
+        return new SubjectImpl(email, "user123", null, false);
+    }
 }

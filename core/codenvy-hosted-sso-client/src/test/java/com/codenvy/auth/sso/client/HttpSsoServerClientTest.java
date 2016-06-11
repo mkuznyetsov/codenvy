@@ -90,8 +90,6 @@ public class HttpSsoServerClientTest {
         assertEquals(subject.getUserName(), subject.getUserName());
         assertEquals(subject.getToken(), subject.getToken());
         assertEquals(subject.isTemporary(), subject.isTemporary());
-        assertTrue(subject.isMemberOf("superUser"));
-        assertFalse(subject.isMemberOf("user"));
         verify(requestFactory).fromUrl(eq(UriBuilder.fromUri(API_ENDPOINT)
                                                     .path(SsoService.class)
                                                     .path(SsoService.class, "getCurrentPrincipal")
@@ -143,7 +141,6 @@ public class HttpSsoServerClientTest {
                          .withId("user123")
                          .withName("userok")
                          .withToken("token123")
-                         .withTemporary(false)
-                         .withRoles(Collections.singletonList("superUser"));
+                         .withTemporary(false);
     }
 }

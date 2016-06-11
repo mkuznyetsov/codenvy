@@ -15,8 +15,6 @@
 package com.codenvy.auth.sso.client;
 
 import org.eclipse.che.api.core.UnauthorizedException;
-import org.eclipse.che.commons.env.EnvironmentContext;
-import org.eclipse.che.commons.subject.Subject;
 import org.eclipse.che.dto.server.DtoFactory;
 
 import javax.inject.Inject;
@@ -55,9 +53,11 @@ public class NoUserInteractionTokenHandler extends DefaultTokenHandler {
     @Override
     public void handleMissingToken(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        //go with anonymous
-        EnvironmentContext environmentContext = EnvironmentContext.getCurrent();
-        environmentContext.setSubject(Subject.ANONYMOUS);
-        chain.doFilter(requestWrapper.wrapRequest(request.getSession(), request, Subject.ANONYMOUS), response);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_JSON);
+        try (PrintWriter writer = response.getWriter()) {
+            writer.write(DtoFactory.getInstance()
+                                   .toJson(new UnauthorizedException("User not authorized to call this method.").getServiceError()));
+        }
     }
 }

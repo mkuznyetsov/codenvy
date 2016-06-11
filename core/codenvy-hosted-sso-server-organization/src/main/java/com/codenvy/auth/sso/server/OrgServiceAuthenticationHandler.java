@@ -51,7 +51,7 @@ public class OrgServiceAuthenticationHandler implements AuthenticationHandler {
         try {
             String userId = userDao.authenticate(login, password);
             String userName = userDao.getById(userId).getName();
-            return new SubjectImpl(userName, userId, null, Collections.<String>emptyList(), false);
+            return new SubjectImpl(userName, userId, null, false);
         } catch (ApiException e) {
             LOG.debug(e.getLocalizedMessage(), e);
             throw new AuthenticationException(401, "Authentication failed. Please check username and password.");

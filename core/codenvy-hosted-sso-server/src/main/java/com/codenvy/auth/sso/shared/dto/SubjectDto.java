@@ -46,10 +46,4 @@ public interface SubjectDto {
     void setTemporary(boolean isTemporary);
 
     SubjectDto withTemporary(boolean isTemporary);
-
-    List<String> getRoles();
-
-    void setRoles(List<String> roles);
-
-    SubjectDto withRoles(List<String> roles);
 }

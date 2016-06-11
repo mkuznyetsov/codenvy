@@ -91,7 +91,7 @@ public class MachineModule extends AbstractModule {
         bind(String.class).annotatedWith(Names.named("api.endpoint")).toProvider(ApiEndpointProvider.class);
         bind(String.class).annotatedWith(Names.named("user.token")).toProvider(UserTokenProvider.class);
 
-        bind(PermissionChecker.class).to(com.codenvy.api.permission.server.HttpPermissionChecker.class);
+        bind(PermissionChecker.class).to(com.codenvy.api.permission.server.HttpPermissionCheckerImpl.class);
         bind(TokenHandler.class).to(com.codenvy.api.permission.server.PermissionTokenHandler.class);
         bind(TokenHandler.class).annotatedWith(Names.named("delegated.handler"))
                                 .to(com.codenvy.auth.sso.client.NoUserInteractionTokenHandler.class);

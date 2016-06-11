@@ -42,7 +42,6 @@ import org.eclipse.che.dto.server.JsonStringMapImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.mail.MessagingException;
@@ -233,7 +232,6 @@ public class RepositoryService {
     @GET
     @Path("/download/{artifact}/{version}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @RolesAllowed({"user", "system/admin"})
     public Response download(@PathParam("artifact") final String artifact,
                              @PathParam("version") final String version) {
         try {
@@ -350,75 +348,6 @@ public class RepositoryService {
                        .header("Content-Length", String.valueOf(Files.size(path)))
                        .header("Content-Disposition", "attachment; filename=" + fileName)
                        .build();
-    }
-
-    /**
-     * Uploads artifact into the repository. If the same artifact exists then it will be replaced.
-     * If {@value ArtifactProperties#AUTHENTICATION_REQUIRED_PROPERTY} isn't set then artifact will be treated as private, which requires
-     * user to be authenticated to download it. If {@value ArtifactProperties#SUBSCRIPTION_PROPERTY}  is set then     * user has to have specific valid subscription to download artifact. If artifact is public then subscription won't be taken into account.
-     *
-     * @param artifact
-     *         the name of the artifact
-     * @param version
-     *         the version of the artifact
-     * @return Response
-     */
-    @GenerateLink(rel = "upload artifact")
-    @POST
-    @Path("/upload/{artifact}/{version}")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @RolesAllowed({"system/admin"})
-    public Response upload(@PathParam("artifact") String artifact,
-                           @PathParam("version") String version,
-                           @Context HttpServletRequest request,
-                           @Context UriInfo uriInfo) {
-        if (ServletFileUpload.isMultipartContent(request)) {
-            DiskFileItemFactory diskFactory = new DiskFileItemFactory();
-            diskFactory.setRepository(new File(System.getProperty("java.io.tmpdir")));
-
-            ServletFileUpload upload = new ServletFileUpload(diskFactory);
-            try {
-                List<FileItem> items = upload.parseRequest(request);
-                for (FileItem item : items) {
-                    if (!item.isFormField()) {
-                        String fileName = FilenameUtils.getName(item.getName());
-
-                        Version v;
-                        try {
-                            v = Version.valueOf(version);
-                        } catch (IllegalArgumentException e) {
-                            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                                           .entity("The version format is invalid '" + version + "'").build();
-                        }
-
-                        Properties props = new Properties();
-                        for (Map.Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
-                            if (PUBLIC_PROPERTIES.contains(entry.getKey())) {
-                                props.put(entry.getKey(), entry.getValue().get(0));
-                            }
-                        }
-
-                        try (InputStream in = item.getInputStream()) {
-                            artifactStorage.upload(in, artifact, v.toString(), fileName, props);
-                            return Response.status(Response.Status.OK).build();
-                        } catch (IOException e) {
-                            LOG.error(e.getMessage(), e);
-                            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                                           .entity("Unexpected error occurred during uploading.").build();
-                        } finally {
-                            item.delete();
-                        }
-                    }
-                }
-
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Can n't upload files. The list is empty.").build();
-            } catch (FileUploadException e) {
-                LOG.error(e.getMessage(), e);
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Unexpected error occurred during uploading.").build();
-            }
-        } else {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("The request must contain multipart content").build();
-        }
     }
 
     /** Log event. */

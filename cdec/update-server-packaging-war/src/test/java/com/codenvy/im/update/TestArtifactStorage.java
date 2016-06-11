@@ -172,26 +172,6 @@ public class TestArtifactStorage extends BaseTest {
     }
 
     @Test
-    public void testUpload() throws Exception {
-        Path tmp = Paths.get("target", "download", "tmp");
-        try (BufferedWriter writer = Files.newBufferedWriter(tmp, Charset.defaultCharset())) {
-            writer.write("hello");
-        }
-
-        try (InputStream in = Files.newInputStream(tmp)) {
-            artifactStorage.upload(in, "installation-manager", "1.0.1", "installation-manager-1.0.1.jar", new Properties());
-        }
-
-        Path artifact = Paths.get("target", "download", "installation-manager", "1.0.1", "installation-manager-1.0.1.jar");
-        assertTrue(Files.exists(artifact));
-        assertEquals(Files.size(artifact), 5);
-
-        try (BufferedReader reader = Files.newBufferedReader(artifact, Charset.defaultCharset())) {
-            assertEquals(reader.readLine(), "hello");
-        }
-    }
-
-    @Test
     public void testDownload() throws Exception {
         Properties props = new Properties();
         props.put(FILE_NAME_PROPERTY, "installation-manager-1.0.1.jar");

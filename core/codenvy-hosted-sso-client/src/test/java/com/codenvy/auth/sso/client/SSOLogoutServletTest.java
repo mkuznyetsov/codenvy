@@ -14,11 +14,6 @@
  */
 package com.codenvy.auth.sso.client;
 
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-
 import org.everrest.test.mock.MockHttpServletRequest;
 import org.mockito.Answers;
 import org.mockito.InjectMocks;
@@ -32,6 +27,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 @Listeners(value = MockitoTestNGListener.class)
 public class SSOLogoutServletTest {
