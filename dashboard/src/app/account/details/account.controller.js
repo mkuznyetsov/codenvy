@@ -99,7 +99,7 @@ export class AccountCtrl {
       return;
     }
 
-    let promise = this.cheAPI.getUser().setPassword(password);
+    let promise = this.codenvyAPI.getUser().setPassword(password);
 
     promise.then(() => {
       this.cheNotification.showInfo('Password successfully updated.');

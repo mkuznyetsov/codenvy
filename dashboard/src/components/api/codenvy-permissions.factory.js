@@ -15,9 +15,9 @@
 'use strict';
 
 /**
- * This class is handling the permissions API.
- *
+ * This class is handling the permissions API
  * @author Ann Shumilova
+ * @author Oleksii Orel
  */
 export class CodenvyPermissions {
 
@@ -30,11 +30,21 @@ export class CodenvyPermissions {
     this.$resource = $resource;
 
     this.workspacePermissions = new Map();
+    this.systemPermissions = null;
+
+    this.userServices = {
+      hasUserService: false,
+      hasUserProfileService: false,
+      hasAdminUserService: false,
+      hasInstallationManagerService: false,
+      hasLicenseService: false
+    };
 
     // remote call
     this.remotePermissionsAPI = this.$resource('/api/permissions', {}, {
       store: {method: 'POST', url: '/api/permissions'},
       remove: {method: 'DELETE', url: '/api/permissions/:domain?instance=:instance&user=:user'},
+      getSystemPermissions: {method: 'GET', url: '/api/permissions/system'},
       getPermissionsByInstance: {method: 'GET', url: '/api/permissions/:domain/all?instance=:instance', isArray: true}
     });
   }
@@ -85,5 +95,44 @@ export class CodenvyPermissions {
   removeWorkspacePermissions(workspaceId, userId) {
     let promise = this.remotePermissionsAPI.remove({domain: 'workspace', instance: workspaceId, user: userId}).$promise;
     return promise;
+    let resultPromise = promise.then(() => {
+        this.fetchWorkspacePermissions(workspaceId);
+    });
+
+    return resultPromise;
+  }
+
+  /**
+   * Fetch system permissions
+   * 
+   * @returns {*}
+   */
+  fetchSystemPermissions() {
+    let promise = this.remotePermissionsAPI.getSystemPermissions().$promise;
+    let resultPromise = promise.then((systemPermissions) => {
+      this._updateUserServices(systemPermissions);
+      this.systemPermissions = systemPermissions;
+    });
+
+    return resultPromise;
+  }
+
+  _updateUserServices(systemPermissions) {
+    let isManageUsers = systemPermissions && systemPermissions.actions.includes('manageUsers');
+    let isManageCodenvy = systemPermissions && systemPermissions.actions.includes('manageCodenvy');
+
+    this.userServices.hasUserService = isManageUsers;
+    this.userServices.hasUserProfileService = isManageUsers;
+    this.userServices.hasAdminUserService = isManageUsers;
+    this.userServices.hasInstallationManagerService = isManageCodenvy;
+    this.userServices.hasLicenseService = isManageCodenvy;
+  }
+
+  getSystemPermissions() {
+    return this.systemPermissions;
+  }
+
+  getUserServices() {
+    return this.userServices;
   }
 }

@@ -16,7 +16,7 @@
 
 export class LoginCtrl {
   /*@ngInject*/
-  constructor($http, $cookies, $window, cheAPI, $timeout, $location) {
+  constructor($http, $cookies, $window, codenvyAPI, $timeout, $location) {
 
     this.username = '';
     this.password = '';
@@ -27,7 +27,7 @@ export class LoginCtrl {
     this.$cookies = $cookies;
     this.$window = $window;
     this.$timeout = $timeout;
-    this.cheAPI = cheAPI;
+    this.codenvyAPI = codenvyAPI;
     this.location = $location;
 
     // hide the navbar
@@ -58,7 +58,7 @@ export class LoginCtrl {
         this.$cookies.refreshStatus = 'DISABLED';
 
         // update user
-        let promise = this.cheAPI.getUser().refetchUser();
+        let promise = this.codenvyAPI.getUser().fetchUser();
         promise.then(() => this.refresh() , () => this.refresh());
       },  (response) => {
         this.loginInProgress = false;

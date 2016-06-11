@@ -24,10 +24,11 @@ export class CodenvyUser {
    * Default constructor that is using resource
    * @ngInject for Dependency injection
    */
-  constructor($q, $resource, imsLicenseApi) {
+  constructor($q, $resource, imsLicenseApi, codenvyPermissions) {
     this.$q = $q;
     this.$resource = $resource;
     this.imsLicenseApi = imsLicenseApi;
+    this.codenvyPermissions = codenvyPermissions;
 
     // remote call
     this.remoteUserAPI = this.$resource('/api/user', {}, {
@@ -58,13 +59,6 @@ export class CodenvyUser {
 
     // users by alias
     this.userAliasMap = new Map();
-
-    // user roles
-    this.isUserInRoleMap = new Map();
-
-    this.isLogged = false;
-
-    this.userPromise = null;
 
     // all users by ID
     this.usersMap = new Map();
@@ -311,52 +305,25 @@ export class CodenvyUser {
   }
 
   /**
-   * Gets the user ID
-   * @return user ID
+   * Gets the user
+   * @return user
    */
   getUser() {
-    // try to refresh if user is not yet logged in
-    if (!this.isLogged) {
-      this.fetchUser();
-    }
     return this.user;
   }
 
   /**
-   * Gets the user data
+   * Fetch the user
    */
-  refetchUser() {
-    return this.fetchUser(true);
-  }
-
-  /**
-   * Gets the user data
-   */
-  fetchUser(ignoreCache) {
-    if (!ignoreCache && this.userPromise) {
-      return this.userPromise;
-    }
-    let user = this.remoteUserAPI.get();
-
-    // check admin or not
-    let isAdminPromise = this.fetchIsUserInRole('admin', 'system', '');
-    let isUserPromise = this.fetchIsUserInRole('user', 'system', '');
-
-    let promise = user.$promise;
+  fetchUser() {
+    let promise = this.remoteUserAPI.get().$promise;
     // check if if was OK or not
-    let updatePromise = promise.then(() => {
-      this.isLogged = true;
-    }, () => {
-      this.isLogged = false;
-    });
-    let allPromise = this.$q.all([updatePromise, isUserPromise, isAdminPromise]);
-    this.userPromise = allPromise.then(() => {
+    promise.then((user) => {
       this.user = user;
-    });
+      });
 
-    return this.userPromise;
+    return promise;
   }
-
 
   fetchUserId(userId) {
     let promise = this.remoteUserAPI.findByID({userId: userId}).$promise;
@@ -388,48 +355,4 @@ export class CodenvyUser {
   setPassword(password) {
     return this.remoteUserAPI.setPassword('password=' + password).$promise;
   }
-
-  fetchIsUserInRole(role, scope, scopeId) {
-    let promise = this.remoteUserAPI.inRole({role: role, scope: scope, scopeId: scopeId}).$promise;
-    let parsedResultPromise = promise.then((userInRole) => {
-      this.isUserInRoleMap.set(scope + '/' + role + ':' + scopeId, userInRole);
-    });
-    return parsedResultPromise;
-  }
-
-  /**
-   * Check if useris admin or not by checking the system admin role
-   * @returns {*}
-   */
-  isAdmin() {
-    let userInRole = this.isUserInRoleMap.get('system/admin:');
-    return userInRole && userInRole.isInRole;
-  }
-
-  /**
-   * Check if user is user or not by checking the user role
-   * @returns {*}
-   */
-  isUser() {
-    let userInRole = this.isUserInRoleMap.get('system/user:');
-    return userInRole && userInRole.isInRole;
-  }
-
-
-  /**
-   * Forms the string to display from list of roles.
-   * @returns {String}
-   */
-  getDisplayRole(roles) {
-    let str = '';
-
-    roles.forEach((role) => {
-      let parts = role.split('/');
-      str += parts && parts.length > 1 ? parts[1] : role;
-      str += ' ';
-    });
-
-    return str;
-  }
-
 }

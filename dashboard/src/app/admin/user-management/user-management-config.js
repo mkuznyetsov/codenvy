@@ -28,7 +28,18 @@ export class AdminsUserManagementConfig {
       $routeProvider.accessWhen('/admin/usermanagement', {
         templateUrl: 'app/admin/user-management/user-management.html',
         controller: 'AdminsUserManagementCtrl',
-        controllerAs: 'adminsUserManagementCtrl'
+        controllerAs: 'adminsUserManagementCtrl',
+        resolve: {
+          check: ['$q', 'codenvyPermissions', ($q, codenvyPermissions) => {
+            let defer = $q.defer();
+            if (codenvyPermissions.getUserServices().hasUserService) {
+              defer.resolve();
+            } else {
+              defer.reject();
+            }
+            return defer.promise;
+          }]
+        }
       });
     });
 

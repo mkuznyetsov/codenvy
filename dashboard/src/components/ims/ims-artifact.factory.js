@@ -25,7 +25,7 @@ export class ImsArtifactApi {
    * Default constructor for the artifact API.
    * @ngInject for Dependency injection
    */
-  constructor($resource, $q, cheUser) {
+  constructor($resource, $q) {
     this.$q = $q;
 
     // remote call
@@ -38,42 +38,6 @@ export class ImsArtifactApi {
       downloadArtifacts: {method: 'POST', url: '/im/downloads'},
       deleteDownloadedArtifact: {method: 'DELETE', url: '/im/downloads/:artifactName/:version'},
       artifactProperties: {method: 'GET', url: '/im/artifact/:artifactName/version/:version/properties'}
-    });
-
-    this.ims = {
-      isAvailable: null
-    };
-
-    if (!cheUser.getUser()) {
-      cheUser.fetchUser(false).then(() => {
-        this._updateImsAvailable(this.getDownloadedArtifactsList());
-      });
-    } else {
-      this._updateImsAvailable(this.getDownloadedArtifactsList());
-    }
-  }
-
-  /**
-   * Get the ims available status
-   * @returns {}
-   */
-  getIms() {
-    return this.ims;
-  }
-
-  /**
-   * Update ims available status
-   * @param imsPromise
-   */
-  _updateImsAvailable(imsPromise) {
-    imsPromise.then(() => {
-      this.ims.isAvailable = true;
-    }, (error) => {
-      if (error.status === 404) {
-        this.ims.isAvailable = false;
-      } else {
-        this.ims.isAvailable = true;
-      }
     });
   }
 

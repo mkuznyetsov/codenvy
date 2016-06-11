@@ -24,14 +24,14 @@ export class NagMessageCtrl {
    * Default constructor.
    * @ngInject for Dependency injection
    */
-  constructor($scope, cheAPI, codenvyAPI, imsLicenseApi, nagMessageService, imsArtifactApi) {
+  constructor($scope, cheAPI, codenvyAPI, imsLicenseApi, nagMessageService, codenvyPermissions) {
     this.$scope = $scope;
     this.cheAPI = cheAPI;
     this.codenvyAPI = codenvyAPI;
     this.imsLicenseApi = imsLicenseApi;
     this.nagMessageService = nagMessageService;
 
-    this.ims = imsArtifactApi.getIms();
+    this.userServices = codenvyPermissions.getUserServices();
     this.licenseLegality = imsLicenseApi.getLicenseLegality();
     this.numberOfFreeUsers = imsLicenseApi.getNumberOfFreeUsers();
 
@@ -42,13 +42,13 @@ export class NagMessageCtrl {
    * Check the installation manager status
    */
   checkLicenseStatus() {
-    if (this.ims.isAvailable) {
+    if (this.userServices.hasInstallationManagerService) {
       this.updateLicense();
       return;
     }
     //returns an unregister function
     var unregister = this.$scope.$watch(()=> {
-      return this.ims.isAvailable;
+      return this.userServices.hasInstallationManagerService;
     }, (isAvailable)=> {
       if (!isAvailable) {
         return;

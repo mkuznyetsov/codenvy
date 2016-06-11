@@ -26,12 +26,12 @@ export class CodenvyFactory {
    * Default constructor that is using resource
    * @ngInject for Dependency injection
    */
-  constructor($resource, $q, cheUser, lodash) {
+  constructor($resource, $q, codenvyUser, lodash) {
     // keep resource
     this.$resource = $resource;
     this.$q = $q;
 
-    this.cheUser = cheUser;
+    this.codenvyUser = codenvyUser;
     this.lodash = lodash;
 
     this.factories = [];
@@ -53,13 +53,6 @@ export class CodenvyFactory {
         transformRequest: angular.identity
       }
     });
-
-    // get the Codenvy user.
-    let promise = this.cheUser.fetchUser();
-    promise.then(() => {
-      this.user = this.cheUser.getUser();
-    });
-
   }
 
   /**
@@ -267,7 +260,6 @@ export class CodenvyFactory {
     var deferred = this.$q.defer();
 
     let promise = this.remoteFactoryAPI.put({factoryId: originFactory.id}, originFactory).$promise;
-
     // check if was OK or not
     promise.then((updatedFactory) => {
       let factory = this.factoriesById.get(originFactory.id);
@@ -275,19 +267,16 @@ export class CodenvyFactory {
         updatedFactory.name = updatedFactory.name ? updatedFactory.name : '';
 
         factory.originFactory = updatedFactory;
-        var seeLink = this.detectLinks(updatedFactory);
+        let seeLink = this.detectLinks(updatedFactory);
         factory.idURL = seeLink[0];
         factory.nameURL = seeLink[1];
-
         //update factories map
         this.factoriesById.set(originFactory.id, factory);//set factory
-
         //update factories array
         this.factories.length = 0;
         this.factoriesById.forEach((value)=> {
           this.factories.push(value);
         });
-
       } else {
         this.fetchFactory(originFactory.id);
       }
@@ -295,6 +284,7 @@ export class CodenvyFactory {
     }, (error) => {
       deferred.reject(error);
     });
+
     return deferred.promise;
   }
 
@@ -305,15 +295,13 @@ export class CodenvyFactory {
    * @returns {*} the promise
    */
   setFactoryContent(factoryId, factoryContent) {
-    var deferred = this.$q.defer();
+    let deferred = this.$q.defer();
 
     let promise = this.remoteFactoryAPI.put({factoryId: factoryId}, factoryContent).$promise;
-
     // check if was OK or not
     promise.then(() => {
-
       let fetchFactoryPromise = this.fetchFactory(factoryId);
-
+      //check if was OK or not
       fetchFactoryPromise.then((factory) => {
         deferred.resolve(factory);
       }, (error) => {
@@ -322,6 +310,7 @@ export class CodenvyFactory {
     }, (error) => {
       deferred.reject(error);
     });
+
     return deferred.promise;
   }
 
@@ -331,13 +320,11 @@ export class CodenvyFactory {
    * @returns {*} the promise
    */
   deleteFactoryById(factoryId) {
-    var deferred = this.$q.defer();
+    let deferred = this.$q.defer();
 
     let promise = this.remoteFactoryAPI.delete({factoryId: factoryId}).$promise;
-
-    // check if was OK or not
+    //check if was OK or not
     promise.then(() => {
-
       //update factories map
       this.factoriesById.delete(factoryId);//remove factory
       //update factories array
@@ -345,11 +332,11 @@ export class CodenvyFactory {
       this.factoriesById.forEach((value)=> {
         this.factories.push(value);
       });
-
       deferred.resolve();
     }, (error) => {
       deferred.reject(error);
     });
+
     return deferred.promise;
   }
 
@@ -371,27 +358,52 @@ export class CodenvyFactory {
    * If there are no changes, it's not updated
    */
   fetchFactories(maxItems, skipCount) {
-    var promises = [];
+    let queryData = {
+      'maxItems': maxItems,
+      'skipCount': skipCount
+    };
+    let deferred = this.$q.defer();
+    let user = this.codenvyUser.getUser();
 
-    // use of the user ID
-    var userId = this.user.id;
+    if (user) {
+      queryData['creator.userId'] = user.id;
+      this._fetchFactories(queryData).then(() => {
+        deferred.resolve();
+      }, (error) => {
+        deferred.reject(error);
+      });
 
-    // find the factories
-    let factoriesPromise = this.remoteFactoryFindAPI.query(
-      {'creator.userId': userId, 'maxItems': maxItems, 'skipCount': skipCount}).$promise;
+    } else {
+      this.codenvyUser.fetchUser().then((user) => {
+        queryData['creator.userId'] = user.id;
+        this._fetchFactories(queryData).then(() => {
+          deferred.resolve();
+        }, (error) => {
+          deferred.reject(error);
+        });
+      });
+    }
 
-    // when find is there we can ask for each factory
+    return deferred.promise;
+  }
+
+  _fetchFactories(queryData) {
+    let promises = [];
+
+    let factoriesPromise = this.remoteFactoryFindAPI.query(queryData).$promise;
+
+    promises.push(factoriesPromise);
     factoriesPromise.then((remoteFactories) => {
-
-      // Gets factory resource based on the factory ID
+      //gets factory resource based on the factory ID
       remoteFactories.forEach((factory) => {
-        // there is a factory ID, so we can ask the factory details
+        //there is a factory ID, so we can ask the factory details
         if (factory.id) {
           let tmpFactoryPromise = this.fetchFactory(factory.id);
           promises.push(tmpFactoryPromise);
         }
       });
     });
+
     return this.$q.all(promises);
   }
 

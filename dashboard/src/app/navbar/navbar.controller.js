@@ -20,18 +20,23 @@ export class CodenvyNavBarCtrl {
    * Default constructor
    * @ngInject for Dependency injection
    */
-  constructor($mdSidenav, $scope, $location, $route, userDashboardConfig, cheAPI, codenvyAPI, onBoarding, imsArtifactApi, $rootScope, $http) {
+  constructor($mdSidenav, $scope, $location, $route, userDashboardConfig, cheAPI, codenvyAPI, imsArtifactApi, $rootScope, $http) {
     this.mdSidenav = $mdSidenav;
     this.$scope = $scope;
     this.$location = $location;
     this.$route = $route;
     this.cheAPI = cheAPI;
     this.codenvyAPI = codenvyAPI;
-    this.onBoarding = onBoarding;
     this.imsArtifactApi = imsArtifactApi;
-    this.cheUser = cheAPI.getUser();
+    this.codenvyUser = codenvyAPI.getUser();
+    this.codenvyPermissions = codenvyAPI.getPermissions();
     this.links = [{href: '#/create-workspace', name: 'New Workspace'}];
     this.$rootScope = $rootScope;
+
+    this.userServices = this.codenvyPermissions.getUserServices();
+    if(!this.codenvyPermissions.getSystemPermissions()) {
+      this.codenvyPermissions.fetchSystemPermissions();
+    }
 
     this.displayLoginItem = userDashboardConfig.developmentMode;
     let promiseService = this.cheAPI.getService().fetchServices();
@@ -56,10 +61,6 @@ export class CodenvyNavBarCtrl {
       });
     }
     this.onpremAdminExpanded = true;
-
-    this.cheUser.fetchUser();
-
-    this.ims = this.imsArtifactApi.getIms();
 
     this.menuItemUrl = {
       login: '#/login',
@@ -116,14 +117,6 @@ export class CodenvyNavBarCtrl {
    */
   toggleLeftMenu() {
     this.mdSidenav('left').toggle();
-  }
-
-  userIsAdmin() {
-    return this.cheUser.isAdmin();
-  }
-
-  isUser() {
-    return this.cheUser.isUser();
   }
 
   getWorkspacesNumber() {

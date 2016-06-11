@@ -80,7 +80,6 @@ export class ListFactoriesCtrl {
         this.isLoading = false;
         if (error.status !== 304) {
           cheNotification.showError(error.data.message ? error.data.message : 'Update information failed.');
-          console.log('error', error);
         }
       });
   }
@@ -90,7 +89,6 @@ export class ListFactoriesCtrl {
    */
   loadNextPage() {
     this.skipCount = this.factories.length;
-
     this.isLoading = true;
 
     let promise = this.codenvyAPI.getFactory().fetchFactories(this.maxItems, this.skipCount);
@@ -103,7 +101,6 @@ export class ListFactoriesCtrl {
         this.isLoading = false;
         if (error.status !== 304) {
           this.cheNotification.showError(error.data.message ? error.data.message : 'Update information failed.');
-          console.log('error', error);
         }
       });
   }
@@ -116,13 +113,13 @@ export class ListFactoriesCtrl {
     let factoriesSelectedStatusKeys = Object.keys(this.factoriesSelectedStatus);
     let checkedFactoriesKeys = [];
     if (factoriesSelectedStatusKeys.length) {
-      var ctrl = this;
-      factoriesSelectedStatusKeys.forEach(function (key) {
+      let ctrl = this;
+      factoriesSelectedStatusKeys.forEach((key) => {
         if (ctrl.factoriesSelectedStatus[key] === true) {
           checkedFactoriesKeys.push(key);
         }
       });
-      var queueLenth = checkedFactoriesKeys.length;
+      let queueLenth = checkedFactoriesKeys.length;
       if (queueLenth) {
         let confirmTitle = 'Would you like to delete ';
         if (queueLenth > 1) {
@@ -138,7 +135,7 @@ export class ListFactoriesCtrl {
           .cancel('Cancel')
           .clickOutsideToClose(true);
         this.$mdDialog.show(confirm).then(() => {
-          var isError = false;
+          let isError = false;
           checkedFactoriesKeys.forEach((factoryId) => {
             this.factoriesSelectedStatus[factoryId] = false;
             // remove it !
@@ -152,12 +149,11 @@ export class ListFactoriesCtrl {
                   this.cheNotification.showInfo('Has been successfully removed.');
                 }
               }
-            }, (error) => {
+            }, () => {
               queueLenth--;
               if (!queueLenth) {
                 this.cheNotification.showError('Delete failed.');
               }
-              console.log('error', error);
             });
           });
         });
