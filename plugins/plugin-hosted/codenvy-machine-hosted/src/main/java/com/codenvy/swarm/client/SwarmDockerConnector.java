@@ -22,6 +22,7 @@ import org.eclipse.che.commons.json.JsonParseException;
 import org.eclipse.che.plugin.docker.client.DockerConnector;
 import org.eclipse.che.plugin.docker.client.DockerConnectorConfiguration;
 import org.eclipse.che.plugin.docker.client.DockerException;
+import org.eclipse.che.plugin.docker.client.DockerRegistryAuthResolver;
 import org.eclipse.che.plugin.docker.client.ProgressMonitor;
 import org.eclipse.che.plugin.docker.client.connection.DockerConnection;
 import org.eclipse.che.plugin.docker.client.connection.DockerConnectionFactory;
@@ -63,8 +64,9 @@ public class SwarmDockerConnector extends DockerConnector {
     @Inject
     public SwarmDockerConnector(DockerConnectorConfiguration connectorConfiguration,
                                 DockerConnectionFactory connectionFactory,
+                                DockerRegistryAuthResolver authManager,
                                 @Named("swarm.client.node_description_length") int nodeDescriptionLength) {
-        super(connectorConfiguration, connectionFactory);
+        super(connectorConfiguration, connectionFactory, authManager);
         this.connectionFactory = connectionFactory;
         this.nodeDescriptionLength = nodeDescriptionLength;
         this.strategy = new RandomNodeSelectionStrategy();
