@@ -18,7 +18,7 @@ import com.codenvy.onpremises.factory.filter.ReferrerCheckerFilter;
 
 import org.eclipse.che.api.factory.server.FactoryConstants;
 import org.eclipse.che.api.factory.shared.dto.Author;
-import org.eclipse.che.api.factory.shared.dto.Factory;
+import org.eclipse.che.api.factory.shared.dto.FactoryDto;
 import org.eclipse.che.api.factory.shared.dto.Policies;
 import org.mockito.Mock;
 import org.mockito.testng.MockitoTestNGListener;
@@ -55,7 +55,7 @@ public class ReferrerCheckerFilterTest {
     private FilterChain chain;
 
     @Mock
-    private Factory factory;
+    private FactoryDto factory;
 
     @Mock
     private RequestDispatcher requestDispatcher;

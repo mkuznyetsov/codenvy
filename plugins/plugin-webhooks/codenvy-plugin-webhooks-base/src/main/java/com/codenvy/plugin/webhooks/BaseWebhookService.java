@@ -74,9 +74,9 @@ public abstract class BaseWebhookService extends Service {
      *         branch that factory project must match
      * @return list of factories that contain a project for given repository and branch
      */
-    protected List<Factory> getFactoriesForRepositoryAndBranch(final Set<String> factoryIDs, final String headRepositoryUrl,
+    protected List<FactoryDto> getFactoriesForRepositoryAndBranch(final Set<String> factoryIDs, final String headRepositoryUrl,
                                                                final String headBranch) throws ServerException {
-        List<Factory> factories = new ArrayList<>();
+        List<FactoryDto> factories = new ArrayList<>();
         for (String factoryID : factoryIDs) {
             factories.add(factoryConnection.getFactory(factoryID));
         }
@@ -105,7 +105,7 @@ public abstract class BaseWebhookService extends Service {
      * @return the project that matches the predicate given in argument
      * @throws ServerException
      */
-    protected Factory updateProjectInFactory(final Factory factory,
+    protected FactoryDto updateProjectInFactory(final FactoryDto factory,
                                              final String headRepositoryUrl,
                                              final String headBranch,
                                              final String baseRepositoryUrl,
@@ -145,13 +145,13 @@ public abstract class BaseWebhookService extends Service {
      * @return the project that matches the predicate given in argument
      * @throws ServerException
      */
-    protected Factory updateProjectInFactory(final Factory factory, final String repositoryUrl, final String headBranch,
+    protected FactoryDto updateProjectInFactory(final FactoryDto factory, final String repositoryUrl, final String headBranch,
                                              final String headCommitId) throws ServerException {
         return updateProjectInFactory(factory, repositoryUrl, headBranch, repositoryUrl, headCommitId);
     }
 
-    protected void updateFactory(final Factory factory) throws ServerException {
-        final Factory persistedFactory = factoryConnection.updateFactory(factory);
+    protected void updateFactory(final FactoryDto factory) throws ServerException {
+        final FactoryDto persistedFactory = factoryConnection.updateFactory(factory);
 
         if (persistedFactory == null) {
             throw new ServerException(

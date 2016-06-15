@@ -153,7 +153,7 @@ public class OnPremisesIdeApiModule extends AbstractModule {
                                  .toProvider(FactoryMongoDatabaseProvider.class);
 
 
-        bind(org.eclipse.che.api.factory.server.FactoryStore.class).to(com.codenvy.api.dao.mongo.MongoDBFactoryStore.class);
+        bind(org.eclipse.che.api.factory.server.FactoryStore.class).to(FactoryDaoImpl.class);
         bind(FactoryAcceptValidator.class).to(org.eclipse.che.api.factory.server.impl.FactoryAcceptValidatorImpl.class);
         bind(FactoryCreateValidator.class).to(org.eclipse.che.api.factory.server.impl.FactoryCreateValidatorImpl.class);
         bind(FactoryEditValidator.class).to(org.eclipse.che.api.factory.server.impl.FactoryEditValidatorImpl.class);

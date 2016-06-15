@@ -21,7 +21,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.inject.Inject;
 import com.google.web.bindery.event.shared.EventBus;
 
-import org.eclipse.che.api.factory.shared.dto.Factory;
+import org.eclipse.che.api.factory.shared.dto.FactoryDto;
 import org.eclipse.che.ide.api.notification.NotificationManager;
 import org.eclipse.che.ide.api.notification.StatusNotification;
 import org.eclipse.che.ide.dto.DtoFactory;
@@ -88,9 +88,9 @@ public class ImportFromConfigPresenter implements ImportFromConfigView.ActionDel
     @Override
     public void onImportClicked() {
         view.closeDialog();
-        Factory factoryJson;
+        FactoryDto factoryJson;
         try {
-            factoryJson = dtoFactory.createDtoFromJson(view.getFileContent(), Factory.class);
+            factoryJson = dtoFactory.createDtoFromJson(view.getFileContent(), FactoryDto.class);
         } catch (JSONException jsonException) {
             notification.setStatus(StatusNotification.Status.FAIL);
             notification.setContent("Error parsing factory object.");

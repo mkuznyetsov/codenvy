@@ -20,7 +20,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.inject.Inject;
 import com.google.web.bindery.event.shared.EventBus;
 
-import org.eclipse.che.api.factory.shared.dto.Factory;
+import org.eclipse.che.api.factory.shared.dto.FactoryDto;
 import org.eclipse.che.api.git.shared.GitCheckoutEvent;
 import org.eclipse.che.api.promises.client.Function;
 import org.eclipse.che.api.promises.client.FunctionException;
@@ -91,7 +91,7 @@ public class FactoryProjectImporter extends AbstractImporter {
     private final OAuth2AuthenticatorRegistry oAuth2AuthenticatorRegistry;
     private final DtoUnmarshallerFactory      dtoUnmarshallerFactory;
 
-    private Factory             factory;
+    private FactoryDto          factory;
     private AsyncCallback<Void> callback;
 
     @Inject
@@ -117,7 +117,7 @@ public class FactoryProjectImporter extends AbstractImporter {
         this.dtoUnmarshallerFactory = dtoUnmarshallerFactory;
     }
 
-    public void startImporting(Factory factory, AsyncCallback<Void> callback) {
+    public void startImporting(FactoryDto factory, AsyncCallback<Void> callback) {
         this.callback = callback;
         this.factory = factory;
         importProjects();

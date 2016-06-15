@@ -17,7 +17,7 @@ package com.codenvy.onpremises.factory.filter;
 import org.eclipse.che.api.core.ApiException;
 import org.eclipse.che.api.core.rest.HttpJsonRequestFactory;
 import org.eclipse.che.api.factory.server.FactoryService;
-import org.eclipse.che.api.factory.shared.dto.Factory;
+import org.eclipse.che.api.factory.shared.dto.FactoryDto;
 import org.eclipse.che.api.user.server.UserService;
 import org.eclipse.che.api.user.shared.dto.UserDescriptor;
 
@@ -79,7 +79,7 @@ public class FactoryRetrieverFilter implements Filter {
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain filterChain)
             throws IOException, ServletException {
         HttpServletRequest httpReq = (HttpServletRequest)req;
-        Factory requestedFactory;
+        FactoryDto requestedFactory;
         try {
             if (httpReq.getParameter("id") != null) {
                 String getFactoryUrl = fromUri(apiEndPoint).path(FactoryService.class)
@@ -102,12 +102,12 @@ public class FactoryRetrieverFilter implements Filter {
                                                               .setMethod("GET")
                                                               .request()
                                                               .asDto(UserDescriptor.class);
-                final List<Factory> matchedFactories = httpRequestFactory.fromUrl(getFactoryUrl)
+                final List<FactoryDto> matchedFactories = httpRequestFactory.fromUrl(getFactoryUrl)
                                                                          .setMethod("GET")
                                                                          .addQueryParam("name", httpReq.getParameter("name"))
                                                                          .addQueryParam("creator.userId", user.getId())
                                                                          .request()
-                                                                         .asList(Factory.class);
+                                                                         .asList(FactoryDto.class);
                 if (matchedFactories.isEmpty()) {
                     dispatchToErrorPage(httpReq, resp, INVALID_FACTORY_URL_PAGE, "We can not find factory with given name and user id.");
                     return;
