@@ -454,22 +454,26 @@ public class ConfigManager {
         }
     }
 
+    /**
+     * The "proxies for installation" are act as the default configuration for proxy settings for codenvy
+     */
     private void setupProxyProperties(Map<String, String> codenvyProperties) {
-        String httpProxyForCodenvy = codenvyProperties.get(Config.HTTP_PROXY_FOR_CODENVY_WORKSPACES);
-        String httpsProxyForCodenvy = codenvyProperties.get(Config.HTTPS_PROXY_FOR_CODENVY_WORKSPACES);
+        String httpProxyForCodenvy = codenvyProperties.get(Config.HTTP_PROXY_FOR_CODENVY);
+        String httpsProxyForCodenvy = codenvyProperties.get(Config.HTTPS_PROXY_FOR_CODENVY);
+        String noProxyForCodenvy = codenvyProperties.get(Config.NO_PROXY_FOR_CODENVY);
 
         Map<String, String> systemProperties = obtainProxyProperties();
 
-        if (! StringUtils.isEmpty(httpProxyForCodenvy)) {
-            codenvyProperties.put(Config.HTTP_PROXY, codenvyProperties.get(Config.HTTP_PROXY_FOR_CODENVY_WORKSPACES));
-        } else if (! StringUtils.isEmpty(systemProperties.get(Config.HTTP_PROXY))) {
-            codenvyProperties.put(Config.HTTP_PROXY, systemProperties.get(Config.HTTP_PROXY));
+        if (StringUtils.isEmpty(httpProxyForCodenvy) && ! StringUtils.isEmpty(systemProperties.get(Config.SYSTEM_HTTP_PROXY))) {
+            codenvyProperties.put(Config.HTTP_PROXY_FOR_CODENVY, systemProperties.get(Config.SYSTEM_HTTP_PROXY));
         }
 
-        if (! StringUtils.isEmpty(httpsProxyForCodenvy)) {
-            codenvyProperties.put(Config.HTTPS_PROXY, codenvyProperties.get(Config.HTTPS_PROXY_FOR_CODENVY_WORKSPACES));
-        } else if (! StringUtils.isEmpty(systemProperties.get(Config.HTTPS_PROXY))) {
-            codenvyProperties.put(Config.HTTPS_PROXY, systemProperties.get(Config.HTTPS_PROXY));
+        if (StringUtils.isEmpty(httpsProxyForCodenvy) && ! StringUtils.isEmpty(systemProperties.get(Config.SYSTEM_HTTPS_PROXY))) {
+            codenvyProperties.put(Config.HTTPS_PROXY_FOR_CODENVY, systemProperties.get(Config.SYSTEM_HTTPS_PROXY));
+        }
+
+        if (StringUtils.isEmpty(noProxyForCodenvy) && ! StringUtils.isEmpty(systemProperties.get(Config.SYSTEM_NO_PROXY))) {
+            codenvyProperties.put(Config.NO_PROXY_FOR_CODENVY, systemProperties.get(Config.SYSTEM_NO_PROXY));
         }
     }
 
@@ -572,12 +576,16 @@ public class ConfigManager {
         Map<String, String> proxyProperties = new HashMap<>();
         Map<String, String> environment = getEnvironment();
 
-        if (environment.containsKey(Config.HTTP_PROXY)) {
-            proxyProperties.put(Config.HTTP_PROXY, environment.get(Config.HTTP_PROXY));
+        if (environment.containsKey(Config.SYSTEM_HTTP_PROXY)) {
+            proxyProperties.put(Config.SYSTEM_HTTP_PROXY, environment.get(Config.SYSTEM_HTTP_PROXY));
         }
 
-        if (environment.containsKey(Config.HTTPS_PROXY)) {
-            proxyProperties.put(Config.HTTPS_PROXY, environment.get(Config.HTTPS_PROXY));
+        if (environment.containsKey(Config.SYSTEM_HTTPS_PROXY)) {
+            proxyProperties.put(Config.SYSTEM_HTTPS_PROXY, environment.get(Config.SYSTEM_HTTPS_PROXY));
+        }
+
+        if (environment.containsKey(Config.SYSTEM_NO_PROXY)) {
+            proxyProperties.put(Config.SYSTEM_NO_PROXY, environment.get(Config.SYSTEM_NO_PROXY));
         }
 
         return proxyProperties;

@@ -142,12 +142,12 @@ public class CDECMultiServerHelper extends CDECArtifactHelper {
 
                     Map<String, String> proxySettings = configManager.obtainProxyProperties();
                     StringBuilder setProxyCommandStr = new StringBuilder();
-                    proxySettings.forEach((key, value) -> setProxyCommandStr.append(String.format("export %s = %s; ", key, value)));
+                    proxySettings.forEach((key, value) -> setProxyCommandStr.append(String.format("export %s=\"%s\"; ", key, value)));
 
                     add(createCommand(format("if [ \"`yum list installed | grep puppetlabs-release`\" == \"\" ]; "
                                              + "then %s sudo -E yum -y -q install %s; "
                                              + "fi", setProxyCommandStr, config.getValue(Config.PUPPET_RESOURCE_URL))));
-                        
+
                     // install and enable puppet server
                     add(createCommand(format("sudo yum -y -q install %s", config.getValue(Config.PUPPET_SERVER_PACKAGE))));
                     add(createCommand("sudo systemctl enable puppetmaster"));

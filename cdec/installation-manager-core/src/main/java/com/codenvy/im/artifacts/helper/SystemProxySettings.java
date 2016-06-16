@@ -31,6 +31,8 @@ public class SystemProxySettings {
     private String httpsHost;
     private String httpsPort;
 
+    private String httpNonProxyHosts;
+
     SystemProxySettings() {
     }
 
@@ -45,11 +47,13 @@ public class SystemProxySettings {
         proxySettings.httpHost = System.getProperty("http.proxyHost");
         proxySettings.httpPort = System.getProperty("http.proxyPort");
 
+        proxySettings.httpNonProxyHosts = System.getProperty("http.nonProxyHosts");
+
         proxySettings.httpsUser = System.getProperty("https.proxyUser");
         proxySettings.httpsPassword = System.getProperty("https.proxyPassword");
         proxySettings.httpsHost = System.getProperty("https.proxyHost");
         proxySettings.httpsPort = System.getProperty("https.proxyPort");
-        
+
         return proxySettings;
     }
 
@@ -62,6 +66,7 @@ public class SystemProxySettings {
                && Objects.isNull(httpHost)
                && Objects.isNull(httpPort)
                && Objects.isNull(httpsUser)
+               && Objects.isNull(httpNonProxyHosts)
                && Objects.isNull(httpsPassword)
                && Objects.isNull(httpsHost)
                && Objects.isNull(httpsPort);
@@ -81,6 +86,10 @@ public class SystemProxySettings {
 
     public String getHttpPort() {
         return httpPort;
+    }
+
+    public String getHttpNonProxyHosts() {
+        return httpNonProxyHosts;
     }
 
     public String getHttpsUser() {

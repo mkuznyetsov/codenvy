@@ -37,6 +37,8 @@ public class SystemProxySettingsTest {
         System.setProperty("http.proxyHost", "host1");
         System.setProperty("http.proxyPort", "8081");
 
+        System.setProperty("http.nonProxyHosts", "127.0.0.1|codenvy");
+
         System.setProperty("https.proxyUser", "user2");
         System.setProperty("https.proxyPassword", "paswd2");
         System.setProperty("https.proxyHost", "host2");
@@ -51,6 +53,8 @@ public class SystemProxySettingsTest {
         assertEquals(instance.getHttpHost(), "host1");
         assertEquals(instance.getHttpPort(), "8081");
 
+        assertEquals(instance.getHttpNonProxyHosts(), "127.0.0.1|codenvy");
+
         assertEquals(instance.getHttpsUser(), "user2");
         assertEquals(instance.getHttpsPassword(), "paswd2");
         assertEquals(instance.getHttpsHost(), "host2");
@@ -63,6 +67,8 @@ public class SystemProxySettingsTest {
         System.clearProperty("http.proxyPassword");
         System.clearProperty("http.proxyHost");
         System.clearProperty("http.proxyPort");
+
+        System.clearProperty("http.nonProxyHosts");
 
         System.clearProperty("https.proxyUser");
         System.clearProperty("https.proxyPassword");

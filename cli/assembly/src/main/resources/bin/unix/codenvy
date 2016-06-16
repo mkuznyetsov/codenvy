@@ -258,6 +258,10 @@ setupProxy() {
         extractProxySettings $https_proxy "https"
     fi
 
+    if [ -n "$no_proxy" ]; then
+        PROXY_OPTS="$PROXY_OPTS -Dhttp.nonProxyHosts='$no_proxy'"
+    fi
+
     if [[ $PROXY_OPTS != "" ]]; then
         PROXY_OPTS="$PROXY_OPTS -Djava.net.useSystemProxies=true"
         KARAF_OPTS="$KARAF_OPTS $PROXY_OPTS"

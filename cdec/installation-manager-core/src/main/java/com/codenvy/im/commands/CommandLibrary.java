@@ -16,6 +16,7 @@ package com.codenvy.im.commands;
 
 import com.codenvy.im.agent.AgentException;
 import com.codenvy.im.commands.decorators.PuppetErrorInterrupter;
+import com.codenvy.im.managers.Config;
 import com.codenvy.im.managers.InstallOptions;
 import com.codenvy.im.managers.InstallType;
 import com.codenvy.im.managers.NodeConfig;
@@ -26,7 +27,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -80,7 +80,7 @@ public class CommandLibrary {
     public static Command createReplaceCommand(String file, String replacingToken, String replacement, boolean withSudo) {
         String cmd = format("sudo cat %3$s | sed ':a;N;$!ba;s/\\n/~n/g' | sed 's|%1$s|%2$2s|g' | sed 's|~n|\\n|g' > tmp.tmp && sudo mv tmp.tmp %3$s",
                             replacingToken,
-                            replacement.replace("\\$", "\\\\$").replace("\n", "\\n").replace("&", "\\&"), // http://sed.sourceforge.net/sedfaq3.html: "To enter a literal ampersand on the RHS, type '\&'."
+                            replacement.replace("\\$", "\\\\$").replace("\n", "\\n").replace("|", "\\|").replace("&", "\\&"), // http://sed.sourceforge.net/sedfaq3.html: "To enter a literal ampersand on the RHS, type '\&'."
                             file);
         return createCommand(withSudo ? cmd : cmd.replace("sudo ", ""));
     }
@@ -135,9 +135,11 @@ public class CommandLibrary {
         Path relativePatchFilePath = getRelativePatchFilePath(patchType, installOptions.getInstallType());
         Path patchFile = patchDir.resolve(relativePatchFilePath);
         if (exists(patchFile)) {
-            for (Map.Entry<String, String> e : installOptions.getConfigProperties().entrySet()) {
+            Config config = new Config(installOptions.getConfigProperties());
+
+            for (Map.Entry<String, String> e : config.getProperties().entrySet()) {
                 String property = e.getKey();
-                String value = e.getValue();
+                String value = config.getValue(property);  // work around enclosed properties like "user_ldap_user_container_dn=ou=$user_ldap_users_ou,$user_ldap_dn"
 
                 commands.add(createReplaceCommand(patchFile.toString(), "$" + property, value));
             }

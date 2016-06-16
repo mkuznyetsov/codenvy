@@ -14,13 +14,25 @@
  */
 package com.codenvy.im;
 
+import com.codenvy.auth.sso.client.ClientUrlExtractor;
 import com.codenvy.auth.sso.client.LoginFilter;
+import com.codenvy.auth.sso.client.RecoverableTokenHandler;
+import com.codenvy.auth.sso.client.RequestWrapper;
 import com.codenvy.auth.sso.client.deploy.SsoClientServletModule;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.google.inject.servlet.ServletModule;
-
+import org.eclipse.che.commons.env.EnvironmentContext;
+import org.eclipse.che.commons.subject.Subject;
 import org.eclipse.che.inject.DynaModule;
 import org.everrest.guice.servlet.GuiceEverrestServlet;
+
+import javax.inject.Inject;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /** @author Anatoliy Bazko */
 @DynaModule
@@ -38,11 +50,31 @@ public class UpdateServerServletModule extends ServletModule {
         bind(com.codenvy.auth.sso.client.WebAppClientUrlExtractor.class);
         bind(com.codenvy.auth.sso.client.token.ChainedTokenExtractor.class);
         bind(com.codenvy.auth.sso.client.filter.RequestFilter.class).to(com.codenvy.auth.sso.client.filter.RegexpRequestFilter.class);
-        bind(com.codenvy.auth.sso.client.TokenHandler.class).to(com.codenvy.auth.sso.client.RecoverableTokenHandler.class);
+        bind(com.codenvy.auth.sso.client.TokenHandler.class).to(AnonymousUserTokenHandler.class);
 
-        filterRegex("/(?!_sso/).*$",
-                    "/repository/download").through(LoginFilter.class);
+        filterRegex("/(?!_sso/).*$").through(LoginFilter.class);
         install(new SsoClientServletModule());
         serve("/*").with(GuiceEverrestServlet.class);
+    }
+
+    public static class AnonymousUserTokenHandler extends RecoverableTokenHandler {
+
+        @Inject
+        public AnonymousUserTokenHandler(RequestWrapper requestWrapper,
+                                         ClientUrlExtractor clientUrlExtractor,
+                                         @Named("auth.sso.client_allow_anonymous") boolean allowAnonymous) {
+            super(requestWrapper, clientUrlExtractor, allowAnonymous);
+        }
+
+        @Override public void handleMissingToken(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+            if (!"GET".equals(request.getMethod())) {
+                //go with anonymous
+                EnvironmentContext environmentContext = EnvironmentContext.getCurrent();
+                environmentContext.setSubject(Subject.ANONYMOUS);
+                chain.doFilter(requestWrapper.wrapRequest(request.getSession(), request, Subject.ANONYMOUS), response);
+            } else {
+                super.handleMissingToken(request, response, chain);
+            }
+        }
     }
 }

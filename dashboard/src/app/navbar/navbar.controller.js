@@ -75,8 +75,7 @@ export class CodenvyNavBarCtrl {
       plugins: '#/admin/plugins',
 
       // subsection
-      account: '#/account',
-      team: '#/team'
+      account: '#/account'
     };
 
     // clear highlighting of menu item from navbar

@@ -72,7 +72,8 @@
                 </div>
               </md-button>
             </md-list-item>
-            <md-divider md-theme="factory-theme" ng-if="codenvyNavbarCtrl.userServices.hasInstallationManagerService"></md-divider>
+            <md-divider md-theme="factory-theme" ng-if="codenvyNavbarCtrl.userServices.hasAdminUserService
+                        ||codenvyNavbarCtrl.userServices.hasInstallationManagerService"></md-divider>
             <md-list-item flex class="navbar-subsection-item" ng-if="codenvyNavbarCtrl.userServices.hasInstallationManagerService">
               <md-button nav-bar-selected flex che-reload-href ng-href="{{codenvyNavbarCtrl.menuItemUrl.administration}}"
                          layout-align="left">
@@ -134,12 +135,6 @@
             <md-list-item flex class="navbar-subsection-item">
               <md-button nav-bar-selected flex che-reload-href ng-href="{{codenvyNavbarCtrl.menuItemUrl.account}}" layout-align="left">
                 <div class="navbar-item navbar-item-no-icon" layout="row" layout-align="start center">Account
-                </div>
-              </md-button>
-            </md-list-item>
-            <md-list-item flex class="navbar-subsection-item" ng-if="!codenvyNavbarCtrl.userServices.hasInstallationManagerService">
-              <md-button nav-bar-selected flex che-reload-href ng-href="{{codenvyNavbarCtrl.menuItemUrl.team}}" layout-align="left">
-                <div class="navbar-item navbar-item-no-icon" layout="row" layout-align="start center">Team
                 </div>
               </md-button>
             </md-list-item>

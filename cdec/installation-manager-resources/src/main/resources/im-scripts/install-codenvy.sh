@@ -12,23 +12,33 @@
 # --systemAdminPassword=<SYSTEM ADMIN PASSWORD>
 # --license=accept
 # --install-directory=<PATH TO SINGLE DIRECTORY FOR ALL RESOURCES>
-# --http-proxy=<HTTP PROXY URL>
-# --https-proxy=<HTTPS PROXY URL>
 # --im-cli: to install IM CLI client only
-# --http-proxy-for-docker-daemon=<HTTP PROXY URL>
-# --https-proxy-for-docker-daemon=<HTTPS PROXY URL>
+# --config=<PATH/URL TO CUSTOM CODENVY CONFIG>
 # --docker-registry-mirror=<URL>
+
+# --http-proxy-for-installation=<HTTP PROXY URL>
+# --https-proxy-for-installation=<HTTPS PROXY URL>
+# --https-no-proxy-for-installation=<NO_PROXY SETTING>
+
+# --http-proxy-for-codenvy=<HTTP PROXY URL>
+# --https-proxy-for-codenvy=<HTTPS PROXY URL>
+# --no-proxy-for-codenvy=<NO_PROXY_FOR_CODENVY PROPERTY>
+
 # --http-proxy-for-codenvy-workspaces=<HTTP PROXY URL>
 # --https-proxy-for-codenvy-workspaces=<HTTPS PROXY URL>
-# --no-proxy-for-codenvy-workspaces=<CODENVY NO_PROXY PROPERTY>
-# --config=<PATH/URL TO CUSTOM CODENVY CONFIG>
+# --no-proxy-for-codenvy-workspaces=<NO_PROXY_FOR_CODENVY_WORKSPACES PROPERTY>
+
+# --http-proxy-for-docker-daemon=<HTTP PROXY URL>
+# --https-proxy-for-docker-daemon=<HTTPS PROXY URL>
 
 trap cleanUp EXIT
 
 unset HOST_NAME
 unset SYSTEM_ADMIN_NAME
 unset SYSTEM_ADMIN_PASSWORD
-unset CODENVY_NO_PROXY
+unset HTTP_PROXY_FOR_INSTALLATION
+unset HTTPS_PROXY_FOR_INSTALLATION
+unset NO_PROXY_FOR_INSTALLATION
 
 JDK_URL=http://download.oracle.com/otn-pub/java/jdk/8u45-b14/jdk-8u45-linux-x64.tar.gz
 JRE_URL=http://download.oracle.com/otn-pub/java/jdk/8u45-b14/jre-8u45-linux-x64.tar.gz
@@ -153,29 +163,36 @@ setRunOptions() {
         elif [[ "$var" =~ --install-directory=.* ]]; then
             INSTALL_DIR=$(echo "$var" | sed -e "s/--install-directory=//g")
 
-        elif [[ "$var" =~ --http-proxy=.* ]]; then
-            HTTP_PROXY=$(echo "$var" | sed -e "s/--http-proxy=//g")
-            CURL_PROXY_OPTION="--proxy $HTTP_PROXY"
-
-        elif [[ "$var" =~ --https-proxy=.* ]]; then
-            HTTPS_PROXY=$(echo "$var" | sed -e "s/--https-proxy=//g")
-            CURL_PROXY_OPTION="--proxy $HTTPS_PROXY"
-
-        elif [[ "$var" =~ --http-proxy-for-docker-daemon=.* ]]; then
-            HTTP_PROXY_FOR_DOCKER_DAEMON=$(echo "$var" | sed -e "s/--http-proxy-for-docker-daemon=//g")
-        elif [[ "$var" =~ --https-proxy-for-docker-daemon=.* ]]; then
-            HTTPS_PROXY_FOR_DOCKER_DAEMON=$(echo "$var" | sed -e "s/--https-proxy-for-docker-daemon=//g")
-
         elif [[ "$var" =~ --docker-registry-mirror=.* ]]; then
             DOCKER_REGISTRY_MIRROR=$(echo "$var" | sed -e "s/--docker-registry-mirror=//g")
+
+        elif [[ "$var" =~ --http-proxy-for-installation=.* ]]; then
+            HTTP_PROXY_FOR_INSTALLATION=$(echo "$var" | sed -e "s/--http-proxy-for-installation=//g")
+            CURL_PROXY_OPTION="--proxy $HTTP_PROXY_FOR_INSTALLATION"
+        elif [[ "$var" =~ --https-proxy-for-installation=.* ]]; then
+            HTTPS_PROXY_FOR_INSTALLATION=$(echo "$var" | sed -e "s/--https-proxy-for-installation=//g")
+            CURL_PROXY_OPTION="--proxy $HTTPS_PROXY_FOR_INSTALLATION"
+        elif [[ "$var" =~ --no-proxy-for-installation=.* ]]; then
+            NO_PROXY_FOR_INSTALLATION=$(echo "$var" | sed -e "s/--no-proxy-for-installation=//g")
+
+        elif [[ "$var" =~ --http-proxy-for-codenvy=.* ]]; then
+            HTTP_PROXY_FOR_CODENVY=$(echo "$var" | sed -e "s/--http-proxy-for-codenvy=//g")
+        elif [[ "$var" =~ --https-proxy-for-codenvy=.* ]]; then
+            HTTPS_PROXY_FOR_CODENVY=$(echo "$var" | sed -e "s/--https-proxy-for-codenvy=//g")
+        elif [[ "$var" =~ --no-proxy-for-codenvy=.* ]]; then
+            NO_PROXY_FOR_CODENVY=$(echo "$var" | sed -e "s/--no-proxy-for-codenvy=//g")
 
         elif [[ "$var" =~ --http-proxy-for-codenvy-workspaces=.* ]]; then
             HTTP_PROXY_FOR_CODENVY_WORKSPACES=$(echo "$var" | sed -e "s/--http-proxy-for-codenvy-workspaces=//g")
         elif [[ "$var" =~ --https-proxy-for-codenvy-workspaces=.* ]]; then
             HTTPS_PROXY_FOR_CODENVY_WORKSPACES=$(echo "$var" | sed -e "s/--https-proxy-for-codenvy-workspaces=//g")
-
         elif [[ "$var" =~ --no-proxy-for-codenvy-workspaces=.* ]]; then
-            CODENVY_NO_PROXY=$(echo "$var" | sed -e "s/--no-proxy-for-codenvy-workspaces=//g")
+            NO_PROXY_FOR_CODENVY_WORKSPACES=$(echo "$var" | sed -e "s/--no-proxy-for-codenvy-workspaces=//g")
+
+        elif [[ "$var" =~ --http-proxy-for-docker-daemon=.* ]]; then
+            HTTP_PROXY_FOR_DOCKER_DAEMON=$(echo "$var" | sed -e "s/--http-proxy-for-docker-daemon=//g")
+        elif [[ "$var" =~ --https-proxy-for-docker-daemon=.* ]]; then
+            HTTPS_PROXY_FOR_DOCKER_DAEMON=$(echo "$var" | sed -e "s/--https-proxy-for-docker-daemon=//g")
 
         elif [[ "$var" =~ --config=.* ]]; then
             CUSTOM_CONFIG=$(echo "$var" | sed -e "s/--config=//g")
@@ -261,7 +278,7 @@ doConfigureSystem() {
 }
 
 configureProxySettings() {
-    if [[ -n "$HTTP_PROXY" || -n "$HTTPS_PROXY" ]]; then
+    if [[ -n "$HTTP_PROXY_FOR_INSTALLATION" || -n "$HTTPS_PROXY_FOR_INSTALLATION" || -n "$NO_PROXY_FOR_INSTALLATION" ]]; then
 
         local PROXY_WITH_USER_AUTH_REGEXP="https?://([^:]*):?(.*)@.*"
         local proxyUserName
@@ -272,12 +289,12 @@ configureProxySettings() {
         local yumConfToDisplay
         local wgetrcToDisplay
 
-        if [[ "$HTTP_PROXY" =~ $PROXY_WITH_USER_AUTH_REGEXP ]]; then
-            proxyUser=$([[ "$HTTP_PROXY" =~ $PROXY_WITH_USER_AUTH_REGEXP ]] && echo ${BASH_REMATCH[1]})
-            proxyPassword=$([[ "$HTTP_PROXY" =~ $PROXY_WITH_USER_AUTH_REGEXP ]] && echo ${BASH_REMATCH[2]})
+        if [[ "$HTTP_PROXY_FOR_INSTALLATION" =~ $PROXY_WITH_USER_AUTH_REGEXP ]]; then
+            proxyUser=$([[ "$HTTP_PROXY_FOR_INSTALLATION" =~ $PROXY_WITH_USER_AUTH_REGEXP ]] && echo ${BASH_REMATCH[1]})
+            proxyPassword=$([[ "$HTTP_PROXY_FOR_INSTALLATION" =~ $PROXY_WITH_USER_AUTH_REGEXP ]] && echo ${BASH_REMATCH[2]})
         fi
 
-        proxyWithoutAuth=$(echo "$HTTP_PROXY" | sed "s/@//")
+        proxyWithoutAuth=$(echo "$HTTP_PROXY_FOR_INSTALLATION" | sed "s/@//")
         if [[ -n "$proxyUser" ]]; then
             # remove "<proxyUser>:<proxyPassword>@" token from the proxy URL
             proxyWithoutAuth=$(echo "$proxyWithoutAuth" | sed "s/$proxyUser//")
@@ -289,8 +306,8 @@ configureProxySettings() {
 
         wgetrcToDisplay="${wgetrcToDisplay}$(print "use_proxy=on")\n"
 
-        if [[ -n "$HTTP_PROXY" ]]; then
-            bashrcToDisplay="${bashrcToDisplay}$(print "export http_proxy=$HTTP_PROXY")\n"
+        if [[ -n "$HTTP_PROXY_FOR_INSTALLATION" ]]; then
+            bashrcToDisplay="${bashrcToDisplay}$(print "export http_proxy=$HTTP_PROXY_FOR_INSTALLATION")\n"
 
             yumConfToDisplay="${yumConfToDisplay}$(print "proxy=$proxyWithoutAuth")\n"
             if [[ -n "$proxyUser" ]]; then
@@ -301,12 +318,19 @@ configureProxySettings() {
                 yumConfToDisplay="${yumConfToDisplay}$(print "proxy_password=$proxyPassword")\n"
             fi
 
-            wgetrcToDisplay="${wgetrcToDisplay}$(print "http_proxy=$HTTP_PROXY")\n"
+            wgetrcToDisplay="${wgetrcToDisplay}$(print "http_proxy=$HTTP_PROXY_FOR_INSTALLATION")\n"
         fi
 
-        if [[ -n "$HTTPS_PROXY" ]]; then
-            bashrcToDisplay="${bashrcToDisplay}$(print "export https_proxy=$HTTPS_PROXY")\n"
-            wgetrcToDisplay="${wgetrcToDisplay}$(print "https_proxy=$HTTPS_PROXY")\n"
+        if [[ -n "$HTTPS_PROXY_FOR_INSTALLATION" ]]; then
+            bashrcToDisplay="${bashrcToDisplay}$(print "export https_proxy=$HTTPS_PROXY_FOR_INSTALLATION")\n"
+            wgetrcToDisplay="${wgetrcToDisplay}$(print "https_proxy=$HTTPS_PROXY_FOR_INSTALLATION")\n"
+        fi
+
+        if [[ -n "$NO_PROXY_FOR_INSTALLATION" ]]; then
+            bashrcToDisplay="${bashrcToDisplay}$(print "export no_proxy='$NO_PROXY_FOR_INSTALLATION'")\n"
+
+            # https://www.gnu.org/software/wget/manual/html_node/Wgetrc-Commands.html
+            wgetrcToDisplay="${wgetrcToDisplay}$(print "no_proxy='$NO_PROXY_FOR_INSTALLATION'")\n"
         fi
 
         if [[ ${SUPPRESS} == false ]]; then
@@ -339,9 +363,9 @@ configureProxySettings() {
         # setup /etc/wgetrc
         putLineIntoFile /etc/wgetrc "use_proxy=on" "^use_proxy=.*$"
 
-        if [[ -n "$HTTP_PROXY" ]]; then
+        if [[ -n "$HTTP_PROXY_FOR_INSTALLATION" ]]; then
             # setup ~/.bashrc
-            putLineIntoFile ~/.bashrc "export http_proxy=$HTTP_PROXY" "^export.*http_proxy=.*$"
+            putLineIntoFile ~/.bashrc "export http_proxy=$HTTP_PROXY_FOR_INSTALLATION" "^export.*http_proxy=.*$"
             source ~/.bashrc
 
             # setup /etc/yum.conf
@@ -355,16 +379,25 @@ configureProxySettings() {
             fi
 
             # setup /etc/wgetrc
-            putLineIntoFile /etc/wgetrc "http_proxy=$HTTP_PROXY" "^http_proxy=.*$"
+            putLineIntoFile /etc/wgetrc "http_proxy=$HTTP_PROXY_FOR_INSTALLATION" "^http_proxy=.*$"
         fi
 
-        if [[ -n "$HTTPS_PROXY" ]]; then
+        if [[ -n "$HTTPS_PROXY_FOR_INSTALLATION" ]]; then
             # setup ~/.bashrc
-            putLineIntoFile ~/.bashrc "export https_proxy=$HTTPS_PROXY" "^export.*https_proxy=.*$"
+            putLineIntoFile ~/.bashrc "export https_proxy=$HTTPS_PROXY_FOR_INSTALLATION" "^export.*https_proxy=.*$"
             source ~/.bashrc
 
             # setup /etc/wgetrc
-            putLineIntoFile /etc/wgetrc "https_proxy=$HTTPS_PROXY" "^https_proxy=.*$"
+            putLineIntoFile /etc/wgetrc "https_proxy=$HTTPS_PROXY_FOR_INSTALLATION" "^https_proxy=.*$"
+        fi
+
+        if [[ -n "$NO_PROXY_FOR_INSTALLATION" ]]; then
+            # setup ~/.bashrc
+            putLineIntoFile ~/.bashrc "export no_proxy='$NO_PROXY_FOR_INSTALLATION'" "^export.*no_proxy=.*$"
+            source ~/.bashrc
+
+            # setup /etc/wgetrc
+            putLineIntoFile /etc/wgetrc "no_proxy='$NO_PROXY_FOR_INSTALLATION'" "^no_proxy=.*$"
         fi
     fi
 }
@@ -761,7 +794,8 @@ askProperty() {
 }
 
 insertProperty() {
-    sed -i "s|$1=.*|$1=$2|g" "${CONFIG}"
+    local value=$(echo $2 | sed -r 's/[|]/\\|/g')  # replace "|" on "\|" for sed command
+    sed -i "s|$1=.*|$1=$value|g" "${CONFIG}"
 }
 
 validateHostname() {
@@ -1036,15 +1070,24 @@ printPreInstallInfo_single() {
         insertProperty "docker_registry_mirror" ${DOCKER_REGISTRY_MIRROR}
     fi
 
+    if [ -n "${HTTP_PROXY_FOR_CODENVY}" ]; then
+        insertProperty "http_proxy_for_codenvy" ${HTTP_PROXY_FOR_CODENVY}
+    fi
+    if [ -n "${HTTPS_PROXY_FOR_CODENVY}" ]; then
+        insertProperty "https_proxy_for_codenvy" ${HTTPS_PROXY_FOR_CODENVY}
+    fi
+    if [ -n "${NO_PROXY_FOR_CODENVY}" ]; then
+        insertProperty "no_proxy_for_codenvy" ${NO_PROXY_FOR_CODENVY}
+    fi
+
     if [ -n "${HTTP_PROXY_FOR_CODENVY_WORKSPACES}" ]; then
         insertProperty "http_proxy_for_codenvy_workspaces" ${HTTP_PROXY_FOR_CODENVY_WORKSPACES}
     fi
     if [ -n "${HTTPS_PROXY_FOR_CODENVY_WORKSPACES}" ]; then
         insertProperty "https_proxy_for_codenvy_workspaces" ${HTTPS_PROXY_FOR_CODENVY_WORKSPACES}
     fi
-
-    if [ -n "${CODENVY_NO_PROXY}" ]; then
-        insertProperty "no_proxy" ${CODENVY_NO_PROXY}
+    if [ -n "${NO_PROXY_FOR_CODENVY_WORKSPACES}" ]; then
+        insertProperty "no_proxy_for_codenvy_workspaces" ${NO_PROXY_FOR_CODENVY_WORKSPACES}
     fi
 
     if [[ $IM_CLI == false ]]; then

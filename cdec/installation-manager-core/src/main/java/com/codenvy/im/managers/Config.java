@@ -104,10 +104,13 @@ public class Config {
 
     public static final String CODENVY_INSTALL_TYPE = "codenvy_install_type";
 
-    public static final String HTTP_PROXY                         = "http_proxy";
-    public static final String HTTPS_PROXY                        = "https_proxy";
-    public static final String HTTP_PROXY_FOR_CODENVY_WORKSPACES  = "http_proxy_for_codenvy_workspaces";
-    public static final String HTTPS_PROXY_FOR_CODENVY_WORKSPACES = "https_proxy_for_codenvy_workspaces";
+    public static final String SYSTEM_HTTP_PROXY  = "http_proxy";
+    public static final String SYSTEM_HTTPS_PROXY = "https_proxy";
+    public static final String SYSTEM_NO_PROXY    = "no_proxy";
+
+    public static final String HTTP_PROXY_FOR_CODENVY  = "http_proxy_for_codenvy";
+    public static final String HTTPS_PROXY_FOR_CODENVY = "https_proxy_for_codenvy";
+    public static final String NO_PROXY_FOR_CODENVY    = "no_proxy_for_codenvy";
 
     public static final List<String> MULTI_SERVER_PROPERTIES = ImmutableList.of(MULTI_SERVER_BASE_CONFIG_PP,
                                                                                 MULTI_SERVER_4_0_PROPERTIES,

@@ -20,26 +20,29 @@ import org.eclipse.che.api.core.BadRequestException;
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.ServerException;
+import org.eclipse.che.api.user.server.UserNameValidator;
 import org.eclipse.che.api.user.server.dao.UserDao;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.eclipse.che.api.user.server.UserNameValidator.isValidUserName;
 
 /**
  * @author Sergii Kabashniuk
  */
 public class OrgServiceUserValidator implements UserCreationValidator {
 
-    private final UserDao userDao;
-    private final boolean userSelfCreationAllowed;
+    private final UserDao           userDao;
+    private final UserNameValidator userNameValidator;
+    private final boolean           userSelfCreationAllowed;
 
     @Inject
     public OrgServiceUserValidator(UserDao userDao,
+                                   UserNameValidator userNameValidator,
                                    @Named("user.self.creation.allowed") boolean userSelfCreationAllowed) {
         this.userDao = userDao;
+        this.userNameValidator = userNameValidator;
         this.userSelfCreationAllowed = userSelfCreationAllowed;
     }
 
@@ -57,7 +60,7 @@ public class OrgServiceUserValidator implements UserCreationValidator {
             throw new BadRequestException("User name cannot be empty or null");
         }
 
-        if (!isValidUserName(userName)) {
+        if (!userNameValidator.isValidUserName(userName)) {
             throw new BadRequestException("User name must contain letters and digits only");
         }
 

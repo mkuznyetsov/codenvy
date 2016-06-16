@@ -28,6 +28,7 @@ import com.google.common.io.Files;
 
 import org.eclipse.che.api.auth.AuthenticationException;
 import org.eclipse.che.api.core.ApiException;
+import org.eclipse.che.api.core.ServerException;
 import org.eclipse.che.api.user.server.UserNameValidator;
 import org.eclipse.che.api.user.server.dao.User;
 import org.eclipse.che.commons.lang.Deserializer;
@@ -57,7 +58,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static javax.ws.rs.core.MediaType.TEXT_HTML;
-import static org.eclipse.che.api.user.server.UserNameValidator.normalizeUserName;
 import static org.eclipse.che.commons.lang.IoUtil.getResource;
 import static org.eclipse.che.commons.lang.IoUtil.readAndCloseQuietly;
 import static org.eclipse.che.dto.server.DtoFactory.newDto;
@@ -94,6 +94,8 @@ public class BearerTokenAuthenticationService {
     @Inject
     protected UserCreator                      userCreator;
     @Inject
+    protected UserNameValidator                userNameValidator;
+    @Inject
     @Named("mailsender.application.from.email.address")
     protected String                           mailSender;
 
@@ -125,8 +127,9 @@ public class BearerTokenAuthenticationService {
         }
         Map<String, String> payload = handler.getPayload(credentials.getToken());
         handler.authenticate(credentials.getToken());
-        final String username = normalizeUserName(payload.get("username"));
+
         try {
+            final String username = userNameValidator.normalizeUserName(payload.get("username"));
             User user = userCreator.createUser(payload.get("email"), username, payload.get("firstName"), payload.get("lastName"));
             final Subject subject = new SubjectImpl(user.getName(),
                                                     user.getId(),
@@ -167,7 +170,7 @@ public class BearerTokenAuthenticationService {
 
             LOG.debug("Authenticate user {} with token {}", username, token);
             return builder.build();
-        } catch (IOException e) {
+        } catch (IOException | ServerException e) {
             throw new AuthenticationException(e.getLocalizedMessage(), e);
         }
     }

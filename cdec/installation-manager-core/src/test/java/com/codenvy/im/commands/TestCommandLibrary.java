@@ -95,16 +95,16 @@ public class TestCommandLibrary extends BaseTest {
         Path testFile = Paths.get("target/testFile");
         write(testFile.toFile(), "old\n");
 
-        Command testCommand = createReplaceCommand(testFile.toString(), "old", "\\$new &&", false);
+        Command testCommand = createReplaceCommand(testFile.toString(), "old", "\\$new | &&", false);
         assertEquals(testCommand.toString(), "{'command'='cat target/testFile " +
                                              "| sed ':a;N;$!ba;s/\\n/~n/g' " +
-                                             "| sed 's|old|\\\\$new \\&\\&|g' " +
+                                             "| sed 's|old|\\\\$new \\| \\&\\&|g' " +
                                              "| sed 's|~n|\\n|g' > tmp.tmp " +
                                              "&& mv tmp.tmp target/testFile', 'agent'='LocalAgent'}");
         testCommand.execute();
 
         String content = readFileToString(testFile.toFile());
-        assertEquals(content, "\\$new &&\n");
+        assertEquals(content, "\\$new | &&\n");
     }
 
     @Test
@@ -208,7 +208,7 @@ public class TestCommandLibrary extends BaseTest {
 
     @Test
     public void testCreatePatchBeforeUpdateMultiServerCommand() throws Exception {
-        ImmutableMap<String, String> configProperties = ImmutableMap.of("test_property1", "property1");
+        ImmutableMap<String, String> configProperties = ImmutableMap.of("test_property1", "$test_property2", "test_property2", "property2");
         InstallOptions installOptions = new InstallOptions().setInstallType(InstallType.MULTI_SERVER)
                                                             .setConfigProperties(configProperties);
 
@@ -218,12 +218,9 @@ public class TestCommandLibrary extends BaseTest {
                           "echo -n \"$test_property1\"");
 
         Command command = CommandLibrary.createPatchCommand(patchDir, CommandLibrary.PatchType.BEFORE_UPDATE, installOptions);
-        assertEquals(command.toString(), "[{'command'='sudo cat target/patches/multi_server/patch_before_update.sh " +
-                                         "| sed ':a;N;$!ba;s/\\n/~n/g' " +
-                                         "| sed 's|$test_property1|property1|g' " +
-                                         "| sed 's|~n|\\n|g' > tmp.tmp " +
-                                         "&& sudo mv tmp.tmp target/patches/multi_server/patch_before_update.sh', 'agent'='LocalAgent'}, " +
-                                         "{'command'='bash target/patches/multi_server/patch_before_update.sh', 'agent'='LocalAgent'}]");
+        assertEquals(command.toString(), "[{'command'='sudo cat target/patches/multi_server/patch_before_update.sh | sed ':a;N;$!ba;s/\\n/~n/g' | sed 's|$test_property1|property2|g' | sed 's|~n|\\n|g' > tmp.tmp && sudo mv tmp.tmp target/patches/multi_server/patch_before_update.sh', 'agent'='LocalAgent'}, "
+                                         + "{'command'='sudo cat target/patches/multi_server/patch_before_update.sh | sed ':a;N;$!ba;s/\\n/~n/g' | sed 's|$test_property2|property2|g' | sed 's|~n|\\n|g' > tmp.tmp && sudo mv tmp.tmp target/patches/multi_server/patch_before_update.sh', 'agent'='LocalAgent'}, "
+                                         + "{'command'='bash target/patches/multi_server/patch_before_update.sh', 'agent'='LocalAgent'}]");
     }
 
     @Test
