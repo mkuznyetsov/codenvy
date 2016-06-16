@@ -3,6 +3,7 @@ package com.codenvy.auth.sso.server;
 import com.codenvy.mail.MailSenderClient;
 import com.codenvy.mail.shared.dto.AttachmentDto;
 import com.codenvy.mail.shared.dto.EmailBeanDto;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 
 import org.eclipse.che.api.core.ApiException;
@@ -36,7 +37,7 @@ public class SelfRegistrationManager {
     private static final String LOGO_CID      = "codenvyLogo";
 
     @Inject
-    BearerTokenManager handler;
+    BearerTokenManager tokenManager;
     @Inject
     MailSenderClient   mailSenderClient;
     @Inject
@@ -44,13 +45,23 @@ public class SelfRegistrationManager {
     String             mailFrom;
 
 
-    public void sendVerifiactionEmail(SelfRegistrationService.ValidationData validationData, String queryParams, String masterHostUrl)
+    public void createUser(String token){
+
+    }
+
+
+    public void sendVerificationEmail(SelfRegistrationService.ValidationData validationData, String queryParams, String masterHostUrl)
             throws IOException {
         try {
             Map<String, String> props = new HashMap<>();
             props.put("logo.cid", "codenvyLogo");
-//            props.put("bearertoken", handler.generateBearerToken(validationData.getEmail(), validationData.getUserName(),
-//                                                                 ImmutableMap.of("initiator", "email", "password", validationData.getPassword()));
+            props.put("bearertoken", tokenManager.generateBearerToken(
+                    ImmutableMap.of(
+                            "initiator", "email",
+                            "email", validationData.getEmail(),
+                            "userName", validationData.getUserName(),
+                            "password", validationData.getPassword()
+                                   )));
             props.put("additional.query.params", queryParams);
             props.put("com.codenvy.masterhost.url", masterHostUrl);
 

@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -21,7 +22,7 @@ import java.io.IOException;
 /**
  * Created by sj on 10.06.16.
  */
-@Path("user")
+@Path("user/selfregister")
 public class SelfRegistrationService {
 
     private static final Logger LOG = LoggerFactory.getLogger(SelfRegistrationService.class);
@@ -46,10 +47,11 @@ public class SelfRegistrationService {
         creationValidator.ensureUserCreationAllowed(validationData.getEmail(), validationData.getUserName());
 
         try {
-            selfRegistrationManager.sendVerifiactionEmail(validationData,
+            selfRegistrationManager.sendVerificationEmail(validationData,
                                                           uriInfo.getRequestUri().getQuery(),
                                                           uriInfo.getBaseUriBuilder().replacePath(null).build().toString());
         } catch (IOException e) {
+            LOG.error(e.getLocalizedMessage(), e);
             throw new ServerException("Not able to send confirmation email. Please try again later");
         }
         LOG.info("EVENT#signup-validation-email-send# EMAIL#{}#", validationData.getEmail());
@@ -59,10 +61,11 @@ public class SelfRegistrationService {
     }
 
     @POST
-    @Path("confirm")
+    @Path("create/{token}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response confirm() {
-        return null;
+    public Response confirm(@PathParam("token") String token) {
+        selfRegistrationManager.createUser(token);
+        return Response.ok().build();
     }
 
     public static class ValidationData {

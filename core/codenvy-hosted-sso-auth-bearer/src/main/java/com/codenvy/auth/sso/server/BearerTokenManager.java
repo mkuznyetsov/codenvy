@@ -80,7 +80,7 @@ public class BearerTokenManager {
         if (isValid(payload)) {
             return payload.second;
         }
-        throw new InvalidBearerTokenException(String.format("Provided token %s not found or expired", token));
+        throw new InvalidBearerTokenException(String.format("Provided token %s not found or expired", token), token);
 
     }
 
@@ -110,7 +110,7 @@ public class BearerTokenManager {
         if (isValid(payload)) {
             return payload.second;
         }
-        throw new InvalidBearerTokenException(String.format("Provided token %s not found or expired", token));
+        throw new InvalidBearerTokenException(String.format("Provided token %s not found or expired", token), token);
     }
 
 

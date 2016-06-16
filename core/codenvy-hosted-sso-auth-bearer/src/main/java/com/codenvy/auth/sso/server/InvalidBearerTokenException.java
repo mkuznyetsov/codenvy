@@ -6,7 +6,16 @@ package com.codenvy.auth.sso.server;
  * @author Sergii Kabashniuk
  */
 public class InvalidBearerTokenException extends Exception {
-    public InvalidBearerTokenException(String message) {
+    private final String token;
+
+
+    public InvalidBearerTokenException(String message, String token) {
         super(message);
+        this.token = token;
+    }
+
+
+    public String getToken() {
+        return token;
     }
 }
