@@ -18,7 +18,6 @@ import com.codenvy.api.dao.authentication.AccessTicket;
 import com.codenvy.api.dao.authentication.CookieBuilder;
 import com.codenvy.api.dao.authentication.TicketManager;
 import com.codenvy.api.dao.authentication.TokenGenerator;
-import com.codenvy.auth.sso.server.handler.BearerTokenAuthenticationHandler;
 import com.codenvy.auth.sso.server.organization.UserCreationValidator;
 import com.codenvy.auth.sso.server.organization.UserCreator;
 import com.codenvy.mail.MailSenderClient;
@@ -73,31 +72,28 @@ import static org.eclipse.che.dto.server.DtoFactory.newDto;
 public class BearerTokenAuthenticationService {
 
     private static final Logger LOG           = LoggerFactory.getLogger(BearerTokenAuthenticationService.class);
-    // TODO made this configurable
-    private static final String MAIL_TEMPLATE = "email-templates/verify_email_address.html";
-    private static final String LOGO          = "/email-templates/header.png";
-    private static final String LOGO_CID      = "codenvyLogo";
+
     @Inject
-    protected TicketManager                    ticketManager;
+    protected TicketManager         ticketManager;
     @Inject
-    protected TokenGenerator                   uniqueTokenGenerator;
+    protected TokenGenerator        uniqueTokenGenerator;
     @Inject
-    private   BearerTokenAuthenticationHandler handler;
+    private   BearerTokenManager    handler;
     @Inject
-    protected MailSenderClient                 mailSenderClient;
+    protected MailSenderClient      mailSenderClient;
     @Inject
-    protected InputDataValidator               inputDataValidator;
+    protected InputDataValidator    inputDataValidator;
     @Inject
-    protected CookieBuilder                    cookieBuilder;
+    protected CookieBuilder         cookieBuilder;
     @Inject
-    protected UserCreationValidator            creationValidator;
+    protected UserCreationValidator creationValidator;
     @Inject
-    protected UserCreator                      userCreator;
+    protected UserCreator           userCreator;
     @Inject
-    protected UserNameValidator                userNameValidator;
+    protected UserNameValidator     userNameValidator;
     @Inject
     @Named("mailsender.application.from.email.address")
-    protected String                           mailSender;
+    protected String                mailSender;
 
 
     /**
@@ -196,8 +192,8 @@ public class BearerTokenAuthenticationService {
 
         Map<String, String> props = new HashMap<>();
         props.put("logo.cid", "codenvyLogo");
-        props.put("bearertoken", handler.generateBearerToken(validationData.getEmail(), validationData.getUsername(),
-                                                             Collections.singletonMap("initiator", "email")));
+//        props.put("bearertoken", handler.generateBearerToken(validationData.getEmail(), validationData.getUsername(),
+//                                                             Collections.singletonMap("initiator", "email")));
         props.put("additional.query.params", uriInfo.getRequestUri().getQuery());
         props.put("com.codenvy.masterhost.url", uriInfo.getBaseUriBuilder().replacePath(null).build().toString());
 

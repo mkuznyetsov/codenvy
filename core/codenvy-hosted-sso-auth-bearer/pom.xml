@@ -27,6 +27,10 @@
     <name>Codenvy :: Hosted :: Bearer authentication</name>
     <dependencies>
         <dependency>
+            <groupId>org.eclipse.che.core</groupId>
+            <artifactId>che-core-commons-schedule</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.codenvy.hosted-infrastructure</groupId>
             <artifactId>codenvy-hosted-mail-client</artifactId>
         </dependency>

@@ -17,9 +17,6 @@ package com.codenvy.auth.sso.server;
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.user.server.TokenValidator;
 import org.eclipse.che.api.user.server.dao.User;
-import org.eclipse.che.api.user.shared.dto.UserDescriptor;
-
-import com.codenvy.auth.sso.server.handler.BearerTokenAuthenticationHandler;
 
 import javax.inject.Inject;
 import java.util.Map;
@@ -30,7 +27,7 @@ import java.util.Map;
 public class BearerTokenValidator implements TokenValidator {
 
     @Inject
-    private BearerTokenAuthenticationHandler handler;
+    private BearerTokenManager handler;
 
     @Override
     public User validateToken(String token) throws ConflictException {

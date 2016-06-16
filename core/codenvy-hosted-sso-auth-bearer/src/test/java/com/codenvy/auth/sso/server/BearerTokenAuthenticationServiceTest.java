@@ -16,7 +16,6 @@ package com.codenvy.auth.sso.server;
 
 import com.codenvy.api.dao.authentication.CookieBuilder;
 import com.codenvy.auth.sso.server.BearerTokenAuthenticationService.ValidationData;
-import com.codenvy.auth.sso.server.handler.BearerTokenAuthenticationHandler;
 import com.codenvy.auth.sso.server.organization.UserCreationValidator;
 import com.codenvy.auth.sso.server.organization.UserCreator;
 import com.codenvy.mail.MailSenderClient;
@@ -46,17 +45,17 @@ import static org.testng.Assert.assertTrue;
 public class BearerTokenAuthenticationServiceTest {
 
     @Mock
-    private BearerTokenAuthenticationHandler handler;
+    private BearerTokenManager    handler;
     @Mock
-    private MailSenderClient                 mailSenderClient;
+    private MailSenderClient      mailSenderClient;
     @Mock
-    private InputDataValidator               inputDataValidator;
+    private InputDataValidator    inputDataValidator;
     @Mock
-    private CookieBuilder                    cookieBuilder;
+    private CookieBuilder         cookieBuilder;
     @Mock
-    private UserCreationValidator            creationValidator;
+    private UserCreationValidator creationValidator;
     @Mock
-    private UserCreator                      userCreator;
+    private UserCreator           userCreator;
 
     @InjectMocks
     private BearerTokenAuthenticationService bearerTokenAuthenticationService;

@@ -15,7 +15,7 @@
 package com.codenvy.auth.sso.oauth;
 
 import com.codenvy.auth.sso.server.InputDataValidator;
-import com.codenvy.auth.sso.server.handler.BearerTokenAuthenticationHandler;
+import com.codenvy.auth.sso.server.BearerTokenManager;
 
 import org.eclipse.che.api.auth.AuthenticationException;
 import org.eclipse.che.api.auth.shared.dto.OAuthToken;
@@ -54,22 +54,22 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 public class OAuthLoginServlet extends HttpServlet {
     private static final Logger LOG = LoggerFactory.getLogger(OAuthLoginServlet.class);
     @Inject
-    private UserDao                          userDao;
+    private UserDao                    userDao;
     @Inject
-    private OAuthAuthenticatorProvider       authenticatorProvider;
+    private OAuthAuthenticatorProvider authenticatorProvider;
     @Inject
-    private BearerTokenAuthenticationHandler handler;
+    private BearerTokenManager         handler;
     @Inject
-    private InputDataValidator               inputDataValidator;
+    private InputDataValidator         inputDataValidator;
     @Named("auth.sso.create_workspace_page_url")
     @Inject
-    private String                           createWorkspacePage;
+    private String                     createWorkspacePage;
     @Named("auth.no.account.found.page")
     @Inject
-    private String                           noAccountFoundErrorPage;
+    private String                     noAccountFoundErrorPage;
     @Inject
     @Named("user.self.creation.allowed")
-    private boolean                          userSelfCreationAllowed;
+    private boolean                    userSelfCreationAllowed;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
