@@ -20,12 +20,13 @@
 <div class="left-sidebar-container">
   <md-toolbar class="flex-shrink-none">
     <md-progress-linear md-mode="indeterminate" ng-hide="codenvyNavbarCtrl.email"></md-progress-linear>
-    <div ng-show="codenvyNavbarCtrl.email">
-      <section class="navbar-top-dropdown" layout="column" layout-align="center left">
-        <che-button-dropdown che-button-dropdown-href="#/create-project" che-button-dropdown-label="New Project"
-                             che-button-dropdown-controller="codenvyNavbarCtrl"></che-button-dropdown>
+    <div ng-show="codenvyNavbarCtrl.email" layout="column" flex>
+      <section class="navbar-top-logo logo-color-white" layout="column" layout-align="center left"
+               ng-include="branding.logoText">
       </section>
+
       <md-divider md-theme="factory-theme"></md-divider>
+
       <div class="admin-navbar-menu">
         <section class="left-sidebar-menu" layout="column" layout-align="center center">
           <md-list layout="column">
@@ -33,78 +34,110 @@
                           ng-show="codenvyNavbarCtrl.displayLoginItem">
               <md-button nav-bar-selected flex ng-href="{{codenvyNavbarCtrl.menuItemUrl.login}}" layout-align="left">
                 <div class="navbar-item" layout="row" layout-align="start center">
-                  <i class="fa fa-user icon">&nbsp;</i>
+                  <i class="fa fa-user navbar-icon">&nbsp;</i>
                   <span>Login</span>
                 </div>
               </md-button>
             </md-list-item>
-            <ide-list-item-navbar></ide-list-item-navbar>
             <md-list-item flex class="navbar-subsection-item">
-              <md-button nav-bar-selected flex che-reload-href ng-href="{{codenvyNavbarCtrl.menuItemUrl.dashboard}}" layout-align="left"
+              <md-button nav-bar-selected flex che-reload-href
+                         che-on-long-touch="codenvyNavbarCtrl.openLinkInNewTab('{{codenvyNavbarCtrl.menuItemUrl.dashboard}}')"
+                         ng-href="{{codenvyNavbarCtrl.menuItemUrl.dashboard}}" layout-align="left"
                          target="_self">
                 <div class="navbar-item" layout="row" layout-align="start center">
-                  <i class="fa fa-th-large icon">&nbsp;</i>
+                  <md-icon md-font-icon="navbar-icon chefont cheico-dashboard" aria-label="Dashboard"></md-icon>
                   <span>Dashboard</span>
                 </div>
               </md-button>
             </md-list-item>
             <md-list-item flex class="navbar-subsection-item">
-              <md-button nav-bar-selected flex che-reload-href ng-href="{{codenvyNavbarCtrl.menuItemUrl.workspaces}}" layout-align="left">
+              <md-button nav-bar-selected flex che-reload-href
+                         che-on-long-touch="codenvyNavbarCtrl.openLinkInNewTab('{{codenvyNavbarCtrl.menuItemUrl.workspaces}}')"
+                         ng-href="{{codenvyNavbarCtrl.menuItemUrl.workspaces}}" layout-align="left">
                 <div class="navbar-item" layout="row" layout-align="start center">
-                  <i class="fa fa-server fa-lg icon">&nbsp;</i>
-                  <span>Workspaces</span><span ng-show="codenvyNavbarCtrl.getWorkspacesNumber()">&nbsp;({{codenvyNavbarCtrl.getWorkspacesNumber()}})</span>
+                  <md-icon md-font-icon="navbar-icon chefont cheico-workspace"></md-icon>
+                  <span>Workspaces</span>
+                  <span class="navbar-number" ng-show="codenvyNavbarCtrl.getWorkspacesNumber()">&nbsp;({{codenvyNavbarCtrl.getWorkspacesNumber()}})</span>
                 </div>
               </md-button>
             </md-list-item>
             <md-list-item flex class="navbar-subsection-item">
-              <md-button nav-bar-selected flex che-reload-href ng-href="{{codenvyNavbarCtrl.menuItemUrl.projects}}" layout-align="left">
+              <md-button nav-bar-selected flex che-reload-href
+                         che-on-long-touch="codenvyNavbarCtrl.openLinkInNewTab('{{codenvyNavbarCtrl.menuItemUrl.projects}}')"
+                         ng-href="{{codenvyNavbarCtrl.menuItemUrl.projects}}" layout-align="left">
                 <div class="navbar-item" layout="row" layout-align="start center">
-                  <i class="fa fa-folder-open icon">&nbsp;</i>
+                  <md-icon md-font-icon="navbar-icon chefont cheico-project"
+                           style="font-size: 10px;"></md-icon>
                   <span>Projects</span>
+                  <span class="navbar-number" ng-show="codenvyNavbarCtrl.getProjectsNumber()">&nbsp;({{codenvyNavbarCtrl.getProjectsNumber()}})</span>
                 </div>
               </md-button>
             </md-list-item>
             <md-list-item flex class="navbar-subsection-item" ng-if="codenvyNavbarCtrl.isFactoryServiceAvailable">
-              <md-button nav-bar-selected flex che-reload-href ng-href="{{codenvyNavbarCtrl.menuItemUrl.factories}}" layout-align="left">
+              <md-button nav-bar-selected flex che-reload-href
+                         che-on-long-touch="codenvyNavbarCtrl.openLinkInNewTab('{{codenvyNavbarCtrl.menuItemUrl.factories}}')"
+                         ng-href="{{codenvyNavbarCtrl.menuItemUrl.factories}}" layout-align="left">
                 <div class="navbar-item" layout="row" layout-align="start center">
-                  <i class="chefont cheico-rocket-chefont icon">&nbsp;</i>
+                  <md-icon md-font-icon="navbar-icon chefont cheico-factory"></md-icon>
                   <span>Factories</span>
-                </div>
-              </md-button>
-            </md-list-item>
-            <md-divider md-theme="factory-theme" ng-if="codenvyNavbarCtrl.userServices.hasAdminUserService
-                        ||codenvyNavbarCtrl.userServices.hasInstallationManagerService"></md-divider>
-            <md-list-item flex class="navbar-subsection-item" ng-if="codenvyNavbarCtrl.userServices.hasInstallationManagerService">
-              <md-button nav-bar-selected flex che-reload-href ng-href="{{codenvyNavbarCtrl.menuItemUrl.administration}}"
-                         layout-align="left">
-                <div class="navbar-item" layout="row" layout-align="start center">
-                  <i class="chefont cheico-administration icon">&nbsp;</i>
-                  <span>Administration</span>
-                </div>
-              </md-button>
-            </md-list-item>
-            <md-list-item flex class="navbar-subsection-item" ng-if="codenvyNavbarCtrl.userServices.hasAdminUserService">
-              <md-button nav-bar-selected flex che-reload-href ng-href="{{codenvyNavbarCtrl.menuItemUrl.usermanagement}}"
-                         layout-align="left">
-                <div class="navbar-item" layout="row" layout-align="start center">
-                  <i class="fa fa-user fa-lg icon">&nbsp;</i>
-                  <span>User Management</span>
+                  <span class="navbar-number" ng-show="codenvyNavbarCtrl.getFactoriesNumber()">&nbsp;({{codenvyNavbarCtrl.getFactoriesNumber()}})</span>
                 </div>
               </md-button>
             </md-list-item>
           </md-list>
         </section>
       </div>
-      <md-divider ng-show="codenvyNavbarCtrl.isAdminServiceAvailable" md-theme="factory-theme"></md-divider>
+
+      <div class="admin-navbar-menu"
+           ng-if="codenvyNavbarCtrl.userServices.hasInstallationManagerService || codenvyNavbarCtrl.userServices.hasAdminUserService">
+        <section class="left-sidebar-menu" layout="column" layout-align="start start">
+
+          <div class="navbar-section"
+               flex layout="row" layout-align="start start">
+            <span flex class="navbar-section-title">Administration</span>
+          </div>
+
+          <md-list layout="column">
+            <md-list-item flex class="navbar-subsection-item"
+                          ng-if="codenvyNavbarCtrl.userServices.hasInstallationManagerService">
+              <md-button nav-bar-selected flex che-reload-href
+                         che-on-long-touch="codenvyNavbarCtrl.openLinkInNewTab('{{codenvyNavbarCtrl.menuItemUrl.administration}}')"
+                         ng-href="{{codenvyNavbarCtrl.menuItemUrl.administration}}"
+                         layout-align="left">
+                <div class="navbar-item" layout="row" layout-align="start center">
+                  <i class="fa fa-cog navbar-icon" aria-hidden="true"></i>
+                  <span>Settings</span>
+                </div>
+              </md-button>
+            </md-list-item>
+            <md-list-item flex class="navbar-subsection-item"
+                          ng-if="codenvyNavbarCtrl.userServices.hasAdminUserService">
+              <md-button nav-bar-selected flex che-reload-href
+                         che-on-long-touch="codenvyNavbarCtrl.openLinkInNewTab('{{codenvyNavbarCtrl.menuItemUrl.usermanagement}}')"
+                         ng-href="{{codenvyNavbarCtrl.menuItemUrl.usermanagement}}"
+                         layout-align="left">
+                <div class="navbar-item" layout="row" layout-align="start center">
+                  <i class="fa fa-user fa-lg navbar-icon"></i>
+                  <span>Users</span>
+                </div>
+              </md-button>
+            </md-list-item>
+          </md-list>
+        </section>
+      </div>
+
+      <navbar-recent-workspaces></navbar-recent-workspaces>
+
       <div ng-show="codenvyNavbarCtrl.isAdminServiceAvailable" class="admin-navbar-menu"
            ng-init="configMenuIsExpand=true">
         <div class="navbar-identity"
              flex layout="row" layout-align="start center" ng-click="configMenuIsExpand=!configMenuIsExpand">
-      <span flex layout="row" layout-align="start center" layout-padding>
-        <i class="material-design icon-ic_build_24px">&nbsp;</i>
-        <span flex class="navbar-title">Configuration</span>
-      </span>
-          <i class="material-design md-tab-themed" ng-class="configMenuIsExpand ? 'icon-ic_expand_less_24px' : 'icon-ic_expand_more_24px'">
+          <span flex layout="row" layout-align="start center" layout-padding>
+            <i class="material-design icon-ic_build_24px">&nbsp;</i>
+            <span flex class="navbar-title">Configuration</span>
+          </span>
+          <i class="material-design md-tab-themed"
+             ng-class="configMenuIsExpand ? 'icon-ic_expand_less_24px' : 'icon-ic_expand_more_24px'">
             &nbsp;</i>
         </div>
         <section class="animation navbar-subsection"
@@ -113,48 +146,44 @@
                  ng-if="configMenuIsExpand">
           <md-list layout="column" flex>
             <md-list-item ng-show="codenvyNavbarCtrl.isAdminPluginServiceAvailable" flex class="navbar-subsection-item">
-              <md-button nav-bar-selected flex che-reload-href ng-href="{{codenvyNavbarCtrl.menuItemUrl.plugins}}" layout-align="left">
+              <md-button nav-bar-selected flex che-reload-href
+                         che-on-long-touch="codenvyNavbarCtrl.openLinkInNewTab('{{codenvyNavbarCtrl.menuItemUrl.plugins}}')"
+                         ng-href="{{codenvyNavbarCtrl.menuItemUrl.plugins}}" layout-align="left">
                 <div class="navbar-item" layout="row" layout-align="start center">Plug-Ins</div>
               </md-button>
             </md-list-item>
           </md-list>
         </section>
       </div>
-      <md-divider md-theme="factory-theme"></md-divider>
-      <div class="admin-navbar-menu">
-        <section class="left-sidebar-menu" layout="column" layout-align="center center">
+
+      <div flex layout="column" layout-align="end start"
+           class="admin-navbar-menu">
+        <section class="left-sidebar-menu navbar-account-section">
           <md-list layout="column" flex>
+
             <md-list-item flex class="navbar-subsection-item">
-              <div flex layout-align="left">
-                <div class="navbar-item navbar-identity" layout="row" layout-align="start center">
-                  <i> <img class="developers-face" gravatar-src="codenvyNavbarCtrl.email"/> </i>
-                  <span>{{codenvyNavbarCtrl.cheAPI.getProfile().getFullName(codenvyNavbarCtrl.profile.attributes)}}</span>
-                </div>
-              </div>
-            </md-list-item>
-            <md-list-item flex class="navbar-subsection-item">
-              <md-button nav-bar-selected flex che-reload-href ng-href="{{codenvyNavbarCtrl.menuItemUrl.account}}" layout-align="left">
-                <div class="navbar-item navbar-item-no-icon" layout="row" layout-align="start center">Account
-                </div>
-              </md-button>
+              <navbar-dropdown-menu flex
+                                    navbar-dropdown-items="codenvyNavbarCtrl.accountItems"
+                                    navbar-dropdown-offset="15 -45">
+                <md-button ng-href="" layout-align="left">
+                  <div class="navbar-item navbar-identity" layout="row" layout-align="start center">
+
+                    <i class="navbar-icon" flex="none">
+                      <img class="developers-face" gravatar-src="codenvyNavbarCtrl.email"/>
+                    </i>
+                    <span flex style="text-align: left;">{{codenvyNavbarCtrl.cheAPI.getProfile().getFullName(codenvyNavbarCtrl.profile.attributes)}}</span>
+                    <i class="fa fa-angle-up navbar-icon" aria-hidden="true"></i>
+                  </div>
+                </md-button>
+              </navbar-dropdown-menu>
             </md-list-item>
           </md-list>
         </section>
       </div>
-      <md-divider md-theme="factory-theme" ng-show="codenvyNavbarCtrl.userServices.hasUserProfileService"></md-divider>
-      <section class="left-sidebar-menu" layout="column" layout-align="center center">
-        <md-list layout="row" layout-align="start center">
-          <md-button ng-href="{{branding.navbarButton.link}}"
-                     ng-if="branding.navbarButton"
-                     class="codenvy-navbar-button"
-                     tooltip="{{branding.navbarButton.tooltip}}"
-                     layout-align="center">{{branding.navbarButton.title}}
-          </md-button>
-          <md-list-item>
-            <logout-widget></logout-widget>
-          </md-list-item>
-        </md-list>
-      </section>
+
     </div>
   </md-toolbar>
+
+  <div class="navbar-iframe-button-left-border" ng-show="showIDE"></div>
+
 </div>

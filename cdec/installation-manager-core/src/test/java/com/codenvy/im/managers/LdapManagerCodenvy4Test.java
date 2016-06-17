@@ -67,7 +67,9 @@ public class LdapManagerCodenvy4Test extends BaseLdapTest {
 
         spyLdapManager.changeAdminPassword(curPwd, newPwd);
 
-        verify(spyLdapManager).validateCurrentPassword(eq(curPwd), any(Config.class));
+        Config testConfig = mockConfigManager.loadInstalledCodenvyConfig();
+        verify(spyLdapManager).connect(testConfig, EmbeddedADS.ADS_SECURITY_PRINCIPAL, EmbeddedADS.ADS_SECURITY_CREDENTIALS);
+        verify(spyLdapManager).validateCurrentPassword(eq(curPwd), eq(testConfig));
     }
 
     @Test(expectedExceptions = IllegalStateException.class)
@@ -108,7 +110,7 @@ public class LdapManagerCodenvy4Test extends BaseLdapTest {
 
             put(Config.ADMIN_LDAP_MAIL, "admin@codenvy.onprem");
             put(Config.USER_LDAP_PASSWORD, EmbeddedADS.ADS_SECURITY_CREDENTIALS);
-            put(Config.ADMIN_LDAP_PASSWORD, EmbeddedADS.ADS_SECURITY_CREDENTIALS);
+            put(Config.ADMIN_LDAP_PASSWORD, "any-password");
 
             put(Config.USER_LDAP_USERS_OU, "users");
             put(Config.USER_LDAP_USER_CONTAINER_DN, "ou=$user_ldap_users_ou,$user_ldap_dn");

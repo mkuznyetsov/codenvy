@@ -1,0 +1,78 @@
+.onprem-theme
+
+  $onprem-navbar-backgroud-color = #1C2D56
+  $onprem-navbar-active-menu-background-color = alpha($che-white-color, 20%)
+  $onprem-navbar-border-right-color = #000000
+
+  $onprem-navbar-active-menu-mark-color = $che-medium-blue-color
+
+  $onprem-navbar-menu-icon-color = #808B9C
+  $onprem-navbar-active-menu-icon-color = $che-white-color
+
+  $onprem-navbar-menu-text-color = $cat-gray-color
+  $onprem-navbar-active-menu-text-color = $che-white-color
+  $onprem-navbar-menu-number-color = $che-navbar-menu-icon-color
+
+  $onprem-navbar-recent-workspaces-stopped-color = #B7B7B7
+
+  $onprem-navbar-ide-iframe-button-background-color = lighten($onprem-navbar-backgroud-color, 31%)
+  $onprem-navbar-ide-iframe-button-border-color = alpha($onprem-navbar-ide-iframe-button-background-color, 0.65)
+
+  /* background */
+
+  .left-sidebar-container md-toolbar
+    background-color $onprem-navbar-backgroud-color
+    border-right 1px solid $onprem-navbar-border-right-color
+
+  .admin-navbar-menu md-list-item a.md-button.che-navbar-selected,
+  .admin-navbar-menu md-list-item a.md-button:hover,
+  .admin-navbar-menu md-menu a.md-button:hover
+    background-color $onprem-navbar-active-menu-background-color
+
+  .admin-navbar-menu section.navbar-subsection md-list md-item.navbar-subsection-item md-list-item a.md-button.che-navbar-selected,
+  .admin-navbar-menu section.navbar-subsection md-list md-item.navbar-subsection-item md-list-item a.md-button:hover,
+  .navbar-submenu-content md-menu-item a.md-button:hover
+    background-color $onprem-navbar-active-menu-background-color
+
+  /* active menu mark */
+
+  .admin-navbar-menu .che-navbar-selected:before
+    border-left solid 2px $onprem-navbar-active-menu-mark-color
+
+  /* Main section*/
+
+  /* icon */
+
+  .admin-navbar-menu section a.md-button .navbar-icon,
+  .navbar-submenu-content a.md-button .navbar-icon
+    color $onprem-navbar-menu-icon-color
+
+  .admin-navbar-menu md-list-item a.md-button.che-navbar-selected .navbar-icon
+    color $onprem-navbar-active-menu-icon-color
+
+  /* text */
+
+  .admin-navbar-menu md-list-item a.md-button span.admin-navbar-menu-workspaces-number
+    color $onprem-navbar-menu-number-color
+
+  .admin-navbar-menu md-list-item a.md-button.che-navbar-selected span
+    color $onprem-navbar-active-menu-text-color
+
+  /* Recent workspaces */
+
+  /* text */
+  .recent-workspaces
+    .workspace-status-indicator-circle .workspace-status-stopped
+      color $onprem-navbar-recent-workspaces-stopped-color
+
+    .md-button span.recent-workspaces-stopped-workspace
+      color $onprem-navbar-recent-workspaces-stopped-color
+
+  /* iframe button */
+
+  #ide-iframe-button-link
+    background-color $onprem-navbar-ide-iframe-button-background-color !important
+    _background-color $onprem-navbar-ide-iframe-button-background-color !important
+
+  .navbar-iframe-button-left-border
+    border-right 1px solid $onprem-navbar-ide-iframe-button-border-color

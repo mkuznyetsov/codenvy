@@ -21,7 +21,7 @@ export class AccountCtrl {
    * @ngInject for Dependency injection
    * @author Oleksii Orel
    */
-  constructor($routeParams, $location, cheAPI, codenvyAPI, cheNotification) {
+  constructor($routeParams, $location, cheAPI, codenvyAPI, cheNotification, $rootScope) {
     this.cheAPI = cheAPI;
     this.codenvyAPI = codenvyAPI;
     this.cheNotification = cheNotification;
@@ -57,6 +57,8 @@ export class AccountCtrl {
     }
 
     this.resetPasswordForm = false;
+
+    $rootScope.showIDE = false;
   }
 
   /**

@@ -119,7 +119,9 @@ export class ShareWorkspaceController {
 
     this.existingUsers.forEach((user) => {
       permissionPromises.push(this.storeWorkspacePermissions(user));
-      permissionPromises.push(this.storeRecipePermissions(user));
+      if (this.recipeId) {
+        permissionPromises.push(this.storeRecipePermissions(user));
+      }
     });
 
     this.$q.all(permissionPromises).then(() => {
@@ -260,7 +262,11 @@ export class ShareWorkspaceController {
       return config.dev;
     });
 
-    let recipeLocation = devMachine.source.location
+    let recipeLocation = devMachine.source.location;
+    if (!recipeLocation || recipeLocation.length === 0) {
+      return null;
+    }
+
     let recipePath = '/recipe/';
     let start = recipeLocation.indexOf(recipePath);
     let end = recipeLocation.indexOf('/script', start);

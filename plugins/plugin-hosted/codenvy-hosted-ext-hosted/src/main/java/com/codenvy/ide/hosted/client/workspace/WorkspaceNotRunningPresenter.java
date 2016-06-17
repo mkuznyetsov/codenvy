@@ -16,8 +16,6 @@ package com.codenvy.ide.hosted.client.workspace;
 
 import com.google.gwt.user.client.Window;
 
-import org.eclipse.che.api.workspace.shared.dto.WorkspaceDto;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -31,35 +29,36 @@ public class WorkspaceNotRunningPresenter implements WorkspaceNotRunningView.Act
 
     private final WorkspaceNotRunningView view;
 
-    private WorkspaceDto workspace;
-
-
     @Inject
     public WorkspaceNotRunningPresenter(WorkspaceNotRunningView view) {
-
         this.view = view;
         this.view.setDelegate(this);
     }
 
     /**
      * Show dialog
-     *
-     * @param workspace
-     *         workspace that has been shutdown
      */
-    public void show(WorkspaceDto workspace) {
-        this.workspace = workspace;
-
+    public void show() {
         view.show();
     }
 
     @Override
-    public void onOpenDashboardButtonClicked() {
-        Window.Location.replace("/dashboard/");
-    }
+    public native void onOpenDashboardButtonClicked() /*-{
+        // Verify if IDE is loaded in frame
+        if ($wnd.parent == $wnd) {
+            // IDE is not in frame
+            // Just replace the URL
+            $wnd.location.replace("/dashboard/#/workspaces");
+        } else {
+            // IDE is in frame
+            // Send a message to the parent frame to open workspaces
+            $wnd.parent.postMessage("show-workspaces", "*");
+        }
+    }-*/;
 
     @Override
     public void onRestartButtonClicked() {
-        Window.Location.replace("/dashboard/#/ide/" + workspace.getConfig().getName());
+        Window.Location.reload();
     }
+
 }

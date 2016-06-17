@@ -68,6 +68,7 @@ public class HostedWorkspaceStoppedHandler implements WorkspaceStoppedHandler {
             public void onSuccess(Component result) {
             }
         };
+
         eventBus.addHandler(WorkspaceStoppedEvent.TYPE, this);
     }
 
@@ -76,9 +77,8 @@ public class HostedWorkspaceStoppedHandler implements WorkspaceStoppedHandler {
         workspaceServiceClient.getWorkspace(event.getWorkspace().getId()).then(new Operation<WorkspaceDto>() {
             @Override
             public void apply(WorkspaceDto workspace) throws OperationException {
-
                 if (ACTIVITY_CHECKER.equals(workspace.getAttributes().get(Constants.WORKSPACE_STOPPED_BY))) {
-                    workspaceNotRunningPresenterProvider.get().show(workspace);
+                    workspaceNotRunningPresenterProvider.get().show();
                 } else {
                     workspaceServiceClient.getWorkspaces(SKIP_COUNT, MAX_COUNT)
                                           .then(new Operation<List<WorkspaceDto>>() {

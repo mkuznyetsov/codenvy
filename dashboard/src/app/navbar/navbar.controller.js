@@ -20,7 +20,7 @@ export class CodenvyNavBarCtrl {
    * Default constructor
    * @ngInject for Dependency injection
    */
-  constructor($mdSidenav, $scope, $location, $route, userDashboardConfig, cheAPI, codenvyAPI, imsArtifactApi, $rootScope, $http) {
+  constructor($mdSidenav, $scope, $location, $route, userDashboardConfig, cheAPI, codenvyAPI, imsArtifactApi, $rootScope, $http, $window, $cookies, $resource) {
     this.mdSidenav = $mdSidenav;
     this.$scope = $scope;
     this.$location = $location;
@@ -32,6 +32,10 @@ export class CodenvyNavBarCtrl {
     this.codenvyPermissions = codenvyAPI.getPermissions();
     this.links = [{href: '#/create-workspace', name: 'New Workspace'}];
     this.$rootScope = $rootScope;
+    this.$window = $window;
+    this.$resource = $resource;
+    this.$cookies = $cookies;
+    this.logoutAPI = this.$resource('/api/auth/logout', {});
 
     this.userServices = this.codenvyPermissions.getUserServices();
     if(!this.codenvyPermissions.getSystemPermissions()) {
@@ -73,23 +77,12 @@ export class CodenvyNavBarCtrl {
 
       // subsection
       plugins: '#/admin/plugins',
-
-      // subsection
-      account: '#/account'
     };
 
-    // clear highlighting of menu item from navbar
-    // if route is not part of navbar
-    // or restore highlighting otherwise
+    // highlight navbar menu item
     $scope.$on('$locationChangeStart', () => {
-      let path = '#' + $location.path(),
-        match = Object.keys(this.menuItemUrl).some(item => this.menuItemUrl[item] === path);
-      if (match) {
-        $scope.$broadcast('navbar-selected:restore', path);
-      }
-      else {
-        $scope.$broadcast('navbar-selected:clear');
-      }
+      let path = '#' + $location.path();
+      $scope.$broadcast('navbar-selected:set', path);
     });
 
     // update branding
@@ -105,6 +98,18 @@ export class CodenvyNavBarCtrl {
     });
 
     cheAPI.cheWorkspace.fetchWorkspaces();
+
+    // account dropdown items
+    this.accountItems = [
+      {
+        name: 'Profile & account',
+        url: '#/account'
+      },
+      {
+        name: 'Logout',
+        onclick: () => { this.logout(); }
+      }
+    ];
   }
 
   reload() {
@@ -120,5 +125,29 @@ export class CodenvyNavBarCtrl {
 
   getWorkspacesNumber() {
     return this.cheAPI.cheWorkspace.getWorkspaces().length;
+  }
+
+  getProjectsNumber() {
+    return this.cheAPI.cheWorkspace.getAllProjects().length;
+  }
+
+  getFactoriesNumber() {
+    return this.codenvyAPI.codenvyFactory.getFactories().length;
+  }
+
+  openLinkInNewTab(url) {
+    this.$window.open(url, '_blank');
+  }
+
+  /**
+   * Logout current user
+   */
+  logout() {
+    let data = {token: this.$cookies['session-access-key']};
+    let promise = this.logoutAPI.save(data).$promise;
+    promise.then(() => {
+      this.$rootScope.showIDE = false;
+      this.$window.location.href = this.menuItemUrl.login;
+    });
   }
 }

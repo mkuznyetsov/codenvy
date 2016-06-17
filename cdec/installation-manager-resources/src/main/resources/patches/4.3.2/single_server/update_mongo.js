@@ -34,6 +34,7 @@ var createPermissions = function(){
 createPermissions();
 
 // ---------------------------------------------
+
 var checkActions = function(actions, objectType, id) {
   var result = [];
   for (var i = 0; i < actions.length; i++) {
@@ -67,17 +68,32 @@ var createAcl = function(collectionName, objectType){
 
     permissions.groups.forEach(function(group) {
       if (group.name != "public") {
-        print("Unknown group name " + group.name + " in "+objectType+" with id "
-        + object._id+". It will be ignored.");
-      } else {
-        acl.push({"user":"*", "actions": checkActions(group.acl)});
+        print("Unknown group name " + group.name + " in " + objectType + " with id "
+        + object._id + ". It will be ignored.");
+      } else if (group.acl.indexOf("search") > -1) {
+          //public search is similar to 'public' (user:*) read in 4.3
+          //we don't support other public actions in 4.3
+          acl.push({"user":"*", "actions": ["read"]});
+        }
       }
-    });
+    );
 
     for (var user in permissions.users) {
       var actions = checkActions(permissions.users[user]);
       acl.push({"user": user, "actions": actions});
     }
+
+    //remove old creator's permissions
+    var creator = object.creator;
+    for (var i = 0; i < acl.length; i++) {
+      var aclEntry = acl[i];
+      if (aclEntry.user == creator) {
+        acl.splice(i, 1);
+      }
+    }
+
+    //add creator permissions
+    acl.push({"user":creator, "actions":["read", "update", "delete", "setPermissions"]});
 
     delete object.permissions;
     object.acl = acl;
@@ -93,6 +109,7 @@ createAcl("recipes", "recipe");
 createAcl("stacks", "stack");
 
 // ---------------------------------------------
+
 var updateOrganization = function(){
     var organizationDb = db.getSiblingDB("organization");
     var ssh = organizationDb.getCollection("ssh");

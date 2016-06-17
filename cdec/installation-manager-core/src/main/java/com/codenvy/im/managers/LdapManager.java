@@ -83,7 +83,7 @@ public class LdapManager {
         validateCurrentPassword(currentPassword, config);
 
         try {
-            InitialDirContext ldapContext = connect(config, getRootPrincipal(), config.getValue(Config.ADMIN_LDAP_PASSWORD));
+            InitialDirContext ldapContext = connect(config, getRootPrincipal(), config.getValue(Config.USER_LDAP_PASSWORD));
 
             try {
                 SSHAPasswordEncryptor sshaPasswordEncryptor = new SSHAPasswordEncryptor();
@@ -159,7 +159,7 @@ public class LdapManager {
         }
     }
 
-    private InitialDirContext connect(Config config, String secutiryPrincipal, String securityCredentials) throws NamingException, IOException {
+    InitialDirContext connect(Config config, String secutiryPrincipal, String securityCredentials) throws NamingException, IOException {
         Hashtable<String, String> ldapEnv = new Hashtable<>(5);
         ldapEnv.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
         ldapEnv.put(Context.PROVIDER_URL, format("%s://%s:%s",

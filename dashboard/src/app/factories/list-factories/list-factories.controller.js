@@ -25,7 +25,7 @@ export class ListFactoriesCtrl {
    * Default constructor that is using resource injection
    * @ngInject for Dependency injection
    */
-  constructor($mdDialog, codenvyAPI, cheNotification) {
+  constructor($mdDialog, codenvyAPI, cheNotification, $rootScope) {
     this.$mdDialog = $mdDialog;
     this.codenvyAPI = codenvyAPI;
     this.cheNotification = cheNotification;
@@ -82,6 +82,8 @@ export class ListFactoriesCtrl {
           cheNotification.showError(error.data.message ? error.data.message : 'Update information failed.');
         }
       });
+
+    $rootScope.showIDE = false;
   }
 
   /**
