@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,13 +29,20 @@ import static com.google.common.base.Joiner.on;
 import static java.lang.String.format;
 
 /** @author Dmytro Nochevnov */
-public abstract class AdditionalNodesConfigHelper {
+public abstract class NodeConfigHelper {
 
     protected Config config;
 
     private static final String NODE = "node";
 
-    enum AdditionalNode {        
+    public static boolean isDefaultNode(Config config, String dns) {
+        String hostUrl = config.getHostUrl();
+        return hostUrl != null && hostUrl.equals(dns);
+    }
+
+    abstract public int getNodeNumber();
+
+    enum Node {
         RUNNER(NodeConfig.NodeType.RUNNER, Config.ADDITIONAL_RUNNERS, NodeConfig.NodeType.RUNNER.toString().toLowerCase()),
         BUILDER(NodeConfig.NodeType.BUILDER, Config.ADDITIONAL_BUILDERS, NodeConfig.NodeType.BUILDER.toString().toLowerCase()),
         MACHINE_NODE(NodeConfig.NodeType.MACHINE_NODE, Config.SWARM_NODES, NODE);
@@ -47,7 +53,7 @@ public abstract class AdditionalNodesConfigHelper {
 
         protected Config config;
         
-        AdditionalNode(NodeConfig.NodeType type, String property, String dnsPrefix) {
+        Node(NodeConfig.NodeType type, String property, String dnsPrefix) {
             this.type = type;
             this.property = property;
             this.dnsPrefix = dnsPrefix;
@@ -67,7 +73,7 @@ public abstract class AdditionalNodesConfigHelper {
         
         @Nullable
         public static String getProperty(NodeConfig.NodeType type) {
-            for (AdditionalNode item : AdditionalNode.values()) {
+            for (Node item : Node.values()) {
                 if (item.getType().equals(type)) {
                     return item.getProperty();
                 }
@@ -77,13 +83,12 @@ public abstract class AdditionalNodesConfigHelper {
         }
     }
 
-    public AdditionalNodesConfigHelper(Config config) {
+    public NodeConfigHelper(Config config) {
         this.config = config;
     }
 
     /**
-     * Read all urls of additional nodes stored from the puppet master config, find out node with certain dns and return type of additional node with
-     * certain dns.
+     * Read all urls of nodes stored from the puppet master config, find out node with certain dns and return type of node with certain dns.
      * For example (Codenvy3): given:
      * $additional_builders = "http://builder2.example.com:8080/builder/internal/builder,http://builder3.example.com:8080/builder/internal/builder"
      * dns = "builder3.example.com"
@@ -91,11 +96,16 @@ public abstract class AdditionalNodesConfigHelper {
      */
     @Nullable
     public NodeConfig.NodeType recognizeNodeTypeFromConfigBy(String dns) {
-        for (AdditionalNode item : getAdditionalNodes()) {
-            String additionalNodes = config.getValueWithoutSubstitution(item.getProperty());
+        for (Node item : getNodeListProperties()) {
+            List<String> nodes = getNodes(item.getProperty());
+            if (nodes == null) {
+                continue;
+            }
 
-            if (additionalNodes != null && additionalNodes.contains(dns)) {
-                return item.getType();
+            for (String nodeDns : nodes) {
+                if (nodeDns.startsWith(dns)) {
+                    return item.getType();
+                }
             }
         }
 
@@ -104,44 +114,11 @@ public abstract class AdditionalNodesConfigHelper {
 
     /**
      * Iterate through registered additional node types to find type which = prefix of dns, and then return NodeConfig(found_type, dns).
-     * For example (Codenvy3): given:
-     * dns = "builder2.dev.com"
-     * $builder_host_name = "builder1.dev.com"  => base_node_domain = ".dev.com"
-     * Result = new NodeConfig(BUILDER, "builder2.dev.com")
-     * <p/>
-     * Example 2: given:
-     * dns = "builder2.dev.com"
-     * $builder_host_name = "builder1.example.com"  => base_node_domain = ".example.com"  != ".dev.com"
-     * Result = IllegalArgumentException("Illegal DNS name 'builder2.dev.com' of additional node....)
      *
      * @throws IllegalArgumentException
-     *         if dns doesn't comply with convention '<supported_node_type><number>(base_node_domain)'
+     *         if dns doesn't comply with convention '{supported_node_type}{number}{base_node_domain}' or '{base_node_domain}' (for MACHINE_NODE only)
      */
-    public NodeConfig recognizeNodeConfigFromDns(String dns) throws IllegalArgumentException, IllegalStateException {
-        StringJoiner allowedDnsTemplates = new StringJoiner(", ", "[", "]");
-        
-        for (AdditionalNode item : getAdditionalNodes()) {
-            NodeConfig.NodeType type = item.getType();
-            String baseNodeDomain = getBaseNodeDomain(type, config);
-                       
-            String typeString = item.getDnsPrefix();
-            String regex = format("^%s\\d+%s$",
-                                  typeString,
-                                  baseNodeDomain);
-
-            if (dns != null && dns.toLowerCase().matches(regex)) {
-                return new NodeConfig(type, dns);
-            }
-            
-            allowedDnsTemplates.add(format("'%s<number>%s'", 
-                                           typeString, 
-                                           baseNodeDomain));
-        }
-
-        throw new IllegalArgumentException(format("Illegal DNS name '%s' of additional node. Correct DNS name templates: %s", 
-                                                  dns, 
-                                                  allowedDnsTemplates));
-    }
+    abstract public NodeConfig recognizeNodeConfigFromDns(String dns) throws IllegalArgumentException, IllegalStateException;
 
     /**
      * @return base node config for certain type of additional node.
@@ -156,7 +133,7 @@ public abstract class AdditionalNodesConfigHelper {
      */
     @Nullable
     public String getPropertyNameBy(NodeConfig.NodeType nodeType) {
-        return AdditionalNode.getProperty(nodeType);
+        return Node.getProperty(nodeType);
     }
 
     /**
@@ -168,29 +145,34 @@ public abstract class AdditionalNodesConfigHelper {
      * Result = "http://builder2.example.com:8080/builder/internal/builder,http://builder3.example.com:8080/builder/internal/builder"
      *
      * @throws IllegalArgumentException
-     *         if there is adding node in the list of additional nodes
+     *         if there is adding node in the list of nodes
      * @throws IllegalStateException
-     *         if additional nodes property isn't found in Codenvy config
+     *         if node list property isn't found in Codenvy config
      */
     public String getValueWithNode(NodeConfig addingNode) throws IllegalArgumentException, IllegalStateException {
         String additionalNodesProperty = getPropertyNameBy(addingNode.getType());
         List<String> nodesUrls = getNodes(additionalNodesProperty);
         if (nodesUrls == null) {
-            throw new IllegalStateException(format("Additional nodes property '%s' isn't found in Codenvy config", additionalNodesProperty));
+            throw new IllegalStateException(format("Node list property '%s' isn't found in Codenvy config", additionalNodesProperty));
         }
 
-        String nodeUrl = getAdditionalNodeUrl(addingNode);
+        String nodeUrl = getNodeUrl(addingNode);
         if (nodesUrls.contains(nodeUrl)) {
             throw new IllegalArgumentException(format("Node '%s' has been already used", addingNode.getHost()));
         }
 
+        // restore '$host_url' token linked to default node in node list
+        if (addingNode.getHost().equals(config.getHostUrl())) {
+            nodeUrl = nodeUrl.replace(addingNode.getHost(), format("$%s", Config.HOST_URL));
+        }
+
         nodesUrls.add(nodeUrl);
 
-        return on(getAdditionalNodeDelimiter()).skipNulls().join(nodesUrls);
+        return on(getNodeDelimiter()).skipNulls().join(nodesUrls);
     }
 
     /**
-     * Erase url of removing node from the list of additional nodes of type = removingNode.getType() of the configuration of puppet master,
+     * Erase url of removing node from the list of nodes of type = removingNode.getType() of the configuration of puppet master,
      * and return this list as row with comma-separated values.
      * For example (Codenvy3): given:
      * $additional_builders = "http://builder2.example.com:8080/builder/internal/builder,http://builder3.example.com:8080/builder/internal/builder"
@@ -198,65 +180,59 @@ public abstract class AdditionalNodesConfigHelper {
      * Result = "http://builder2.example.com:8080/builder/internal/builder"
      *
      * @throws IllegalArgumentException
-     *         if there is no removing node in the list of additional nodes
+     *         if there is no removing node in the list of node list
      * @throws IllegalStateException
-     *         if additional nodes property isn't found in Codenvy config
+     *         if node list property isn't found in Codenvy config
      */
     public String getValueWithoutNode(NodeConfig removingNode) throws IllegalArgumentException {
         String additionalNodesProperty = getPropertyNameBy(removingNode.getType());
         List<String> nodesUrls = getNodes(additionalNodesProperty);
         if (nodesUrls == null) {
-            throw new IllegalStateException(format("Additional nodes property '%s' isn't found in Codenvy config", additionalNodesProperty));
+            throw new IllegalStateException(format("Node list property '%s' isn't found in Codenvy config", additionalNodesProperty));
         }
 
-        String nodeUrl = getAdditionalNodeUrl(removingNode);
+        String nodeUrl = getNodeUrl(removingNode);
         if (!nodesUrls.contains(nodeUrl)) {
-            throw new IllegalArgumentException(format("There is no node '%s' in the list of additional nodes", removingNode.getHost()));
+            throw new IllegalArgumentException(format("There is no node '%s' in the list of nodes", removingNode.getHost()));
         }
 
         nodesUrls.remove(nodeUrl);
 
-        return on(getAdditionalNodeDelimiter()).skipNulls().join(nodesUrls);
+        return on(getNodeDelimiter()).skipNulls().join(nodesUrls);
     }
 
     /**
-     * @return list of additional nodes extracted from value of "additionalNodesProperty" of config. May include dns of default node.
+     * @return list of nodes extracted from value of "additionalNodesProperty" of config. May include dns of default node for Codenvy 4.
      */
     public List<String> getNodes(String additionalNodesProperty) {
-        return config.getAllValues(additionalNodesProperty, String.valueOf(getAdditionalNodeDelimiter()));
+        return config.getAllValues(additionalNodesProperty, String.valueOf(getNodeDelimiter()));
     }
 
     /**
-     * @return for given additional node type: Map[{additionalNodesPropertyName}, {List<String> of additionalNodesDns}]
+     * @return for given node type: Map[{nodeListPropertyName}, {List<String> of nodesDns}]
      */
     @Nullable
-    public Map<String, List<String>> extractAdditionalNodesDns(NodeConfig.NodeType nodeType) {
+    public Map<String, List<String>> extractNodesDns(NodeConfig.NodeType nodeType) {
         Map<String, List<String>> result = new HashMap<>();
 
-        String additionalNodesProperty = getPropertyNameBy(nodeType);
-        List<String> nodesUrls = getAdditionalNodes(additionalNodesProperty);
+        String nodeListProperty = getPropertyNameBy(nodeType);
+        List<String> nodesUrls = getNodes(nodeListProperty);
         if (nodesUrls == null) {
             return null;
         }
 
         List<String> nodesDns = new ArrayList<>();
         for (String nodeUrl: nodesUrls) {
-            String nodeDns = getAdditionalNodeDns(nodeUrl);
+            String nodeDns = getNodeDns(nodeUrl);
             if (nodeDns != null) {
                 nodesDns.add(nodeDns);
             }
         }
 
-        result.put(additionalNodesProperty, nodesDns);
+        result.put(nodeListProperty, nodesDns);
 
         return result;
     }
-
-    /**
-     * @return list of additional nodes extracted from value of "additionalNodesProperty" of config. Bypass default node.
-     */
-    @Nullable
-    abstract public List<String> getAdditionalNodes(String additionalNodesProperty);
 
     /**
      * @return link like "http://builder3.example.com:8080/builder/internal/builder", or "http://runner3.example.com:8080/runner/internal/runner"
@@ -264,8 +240,8 @@ public abstract class AdditionalNodesConfigHelper {
      * node = new NodeConfig(BUILDER, "builder2.example.com")
      * Result = "http://builder2.example.com:8080/builder/internal/builder"
      */
-    protected String getAdditionalNodeUrl(NodeConfig node) {
-        return format(getAdditionalNodeTemplate(),
+    protected String getNodeUrl(NodeConfig node) {
+        return format(getNodeTemplate(),
                       node.getHost(),
                       node.getType().toString().toLowerCase()
                      );
@@ -278,13 +254,13 @@ public abstract class AdditionalNodesConfigHelper {
      * Result = builder2.example.com
      */
     @Nullable
-    private String getAdditionalNodeDns(String nodeUrl) {
-        String regex = getAdditionalNodeRegex() + "([^:/]+)";
+    private String getNodeDns(String nodeUrl) {
+        String regex = getNodeRegex() + "([^:/]+)";
         Pattern p = Pattern.compile(regex);
 
         Matcher m = p.matcher(nodeUrl);
         if (m.find()) {
-            return m.group().replaceAll(getAdditionalNodeRegex(), "");
+            return m.group().replaceAll(getNodeRegex(), "");
         }
 
         return null;
@@ -293,20 +269,20 @@ public abstract class AdditionalNodesConfigHelper {
     /**
      * @return regex to recognize additional node url
      */
-    public abstract String getAdditionalNodeRegex();
+    public abstract String getNodeRegex();
 
     /**
      * @return template of additional node url based on node dns
      */
-    public abstract String getAdditionalNodeTemplate();
+    public abstract String getNodeTemplate();
 
     /**
      * @return names of properties of config file which hold additional node urls
      */
-    public abstract List<AdditionalNode> getAdditionalNodes();
+    public abstract List<Node> getNodeListProperties();
 
     /**
      * @return char which is used to separate urls of additional nodes in puppet config
      */
-    public abstract char getAdditionalNodeDelimiter();
+    public abstract char getNodeDelimiter();
 }

@@ -71,6 +71,11 @@ public class TestAddNodeCommand extends AbstractTestCommand {
     }
 
     @Test
+    public void testAddDefaultNode() throws Exception {
+        // TODO
+    }
+
+    @Test
     public void testAddNodeThrowsError() throws Exception {
         String expectedOutput = "{\n"
                                 + "  \"message\" : \"Server Error Exception\",\n"

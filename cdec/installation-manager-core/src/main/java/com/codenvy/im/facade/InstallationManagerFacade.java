@@ -84,8 +84,6 @@ import static java.lang.String.format;
  */
 @Singleton
 public class InstallationManagerFacade {
-    private static final Logger LOG = Logger.getLogger(InstallationManagerFacade.class.getSimpleName());
-
     protected final HttpTransport              transport;
     protected final SaasAuthServiceProxy       saasAuthServiceProxy;
     protected final SaasRepositoryServiceProxy saasRepositoryServiceProxy;
@@ -416,10 +414,6 @@ public class InstallationManagerFacade {
         return artifact.getConfig();
     }
 
-    protected String extractServerUrl(String url) {
-        return Commons.extractServerUrl(url);
-    }
-
     /**
      * @see com.codenvy.im.managers.NodeManager#add(String)
      */
@@ -431,10 +425,6 @@ public class InstallationManagerFacade {
             throw new IllegalStateException("Unknown installed Codenvy version.");
         }
 
-        if (version.is4Major()) {
-            validateLicense();
-        }
-
         NodeConfig nodeConfig = nodeManager.add(dns);
 
         NodeInfo nodeInfo = new NodeInfo();
@@ -442,30 +432,6 @@ public class InstallationManagerFacade {
         nodeInfo.setHost(nodeConfig.getHost());
 
         return nodeInfo;
-    }
-
-    private void validateLicense() {
-        try {
-            CodenvyLicense codenvyLicense = licenseManager.load();
-
-            CodenvyLicense.LicenseType licenseType = codenvyLicense.getLicenseType();
-            if (codenvyLicense.isExpired()) {
-                switch (licenseType) {
-                    case EVALUATION_PRODUCT_KEY:
-                        throw new IllegalStateException("Your Codenvy subscription only allows a single server.");
-                    case PRODUCT_KEY:
-                    default:
-                        // do nothing
-                }
-            }
-        } catch (LicenseNotFoundException e) {
-            throw new IllegalStateException("Your Codenvy subscription only allows a single server.");
-        } catch (InvalidLicenseException e) {
-            throw new IllegalStateException("Codenvy License is invalid or has unappropriated format.");
-        } catch (LicenseException e) {
-            LOG.log(Level.SEVERE, e, e::getMessage);
-            throw new IllegalStateException("Codenvy License can't be validated.", e);
-        }
     }
 
     /**

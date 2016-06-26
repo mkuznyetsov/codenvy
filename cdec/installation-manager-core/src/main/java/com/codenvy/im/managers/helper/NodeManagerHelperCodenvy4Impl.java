@@ -18,6 +18,11 @@ import com.codenvy.im.commands.Command;
 import com.codenvy.im.commands.CommandLibrary;
 import com.codenvy.im.commands.MacroCommand;
 import com.codenvy.im.commands.decorators.PuppetErrorInterrupter;
+import com.codenvy.im.license.CodenvyLicense;
+import com.codenvy.im.license.CodenvyLicenseManager;
+import com.codenvy.im.license.InvalidLicenseException;
+import com.codenvy.im.license.LicenseException;
+import com.codenvy.im.license.LicenseNotFoundException;
 import com.codenvy.im.managers.Config;
 import com.codenvy.im.managers.ConfigManager;
 import com.codenvy.im.managers.InstallType;
@@ -44,79 +49,83 @@ import static java.lang.String.format;
  * @author Dmytro Nochevnov
  */
 public class NodeManagerHelperCodenvy4Impl extends NodeManagerHelper {
+    private CodenvyLicenseManager licenseManager;
 
-    public NodeManagerHelperCodenvy4Impl(ConfigManager configManager) {
+    public NodeManagerHelperCodenvy4Impl(ConfigManager configManager, CodenvyLicenseManager licenseManager) {
         super(configManager);
+        this.licenseManager = licenseManager;
     }
 
     @Override
     public Command getAddNodeCommand(NodeConfig node, String property) throws IOException {
         Config config = configManager.loadInstalledCodenvyConfig();
-        AdditionalNodesConfigHelper additionalNodesConfigHelper = getNodesConfigHelper(config);
+        NodeConfigHelper additionalNodesConfigHelper = getNodeConfigHelper(config);
 
         List<Command> commands = new ArrayList<>();
 
         try {
-            // add node into the autosign list of puppet master
-            commands.add(createCommand(format("if [[ \"$(grep \"%1$s\" /etc/puppet/autosign.conf)\" == \"\" ]]; "
-                                              + "then sudo sh -c \"echo -e '%1$s' >> /etc/puppet/autosign.conf\"; "
-                                              + "fi",
-                                              node.getHost())));
+            if (! isDefaultNode(node, config.getHostUrl())) {
+                // add node into the autosign list of puppet master
+                commands.add(createCommand(format("if [[ \"$(grep \"%1$s\" /etc/puppet/autosign.conf)\" == \"\" ]]; "
+                                                  + "then sudo sh -c \"echo -e '%1$s' >> /etc/puppet/autosign.conf\"; "
+                                                  + "fi",
+                                                  node.getHost())));
 
-            String puppetMasterNodeDns;
-            if (configManager.detectInstallationType() == InstallType.MULTI_SERVER) {
-                puppetMasterNodeDns = configManager.fetchMasterHostName();
-            } else  {
-                puppetMasterNodeDns = config.getHostUrl();
+                String puppetMasterNodeDns;
+                if (configManager.detectInstallationType() == InstallType.MULTI_SERVER) {
+                    puppetMasterNodeDns = configManager.fetchMasterHostName();
+                } else {
+                    puppetMasterNodeDns = config.getHostUrl();
+                }
+
+                // remove outdated certificate of agent from puppet agent, if exists
+                commands.add(createCommand(format("if sudo test -d /var/lib/puppet/ssl; then "
+                                                  + "  sudo find /var/lib/puppet/ssl -name %s.pem -delete; "
+                                                  + "fi", node.getHost()), node));
+
+                // install and enable puppet agent on adding node
+                commands.add(createCommand("yum clean all"));   // cleanup to avoid yum install failures
+                commands.add(createCommand(format("if [[ \"$(yum list installed | grep puppetlabs-release)\" == \"\" ]]; then "
+                                                  + "  sudo yum -y -q install %s; "
+                                                  + "fi", config.getValue(Config.PUPPET_RESOURCE_URL)),
+                                           node));
+                commands.add(createCommand(format("sudo yum -y -q install %s", config.getValue(Config.PUPPET_AGENT_PACKAGE)), node));
+                commands.add(createCommand("sudo systemctl enable puppet", node));
+
+                // configure puppet agent
+                commands.add(createFileBackupCommand("/etc/puppet/puppet.conf", node));
+                commands.add(createCommand(format("if [[ \"$(grep \"server = %1$s\" /etc/puppet/puppet.conf)\" == \"\" ]]; then "
+                                                  + "  sudo sed -i 's/\\[main\\]/\\[main\\]\\n"
+                                                  + "    server = %1$s\\n"
+                                                  + "    runinterval = 420\\n"
+                                                  + "    configtimeout = 600\\n/g' /etc/puppet/puppet.conf; "
+                                                  + "  sudo sed -i 's/\\[agent\\]/\\[agent\\]\\n"
+                                                  + "    show_diff = true\\n"
+                                                  + "    pluginsync = true\\n"
+                                                  + "    report = false\\n"
+                                                  + "    default_schedules = false\\n"
+                                                  + "    certname = %2$s\\n/g' /etc/puppet/puppet.conf; "
+                                                  + "fi",
+                                                  puppetMasterNodeDns,
+                                                  node.getHost()),
+                                           node));
+
+                // log puppet messages into the /var/log/puppet/puppet-agent.log file instead of /var/log/messages
+                commands.add(createCommand("if [[ \"$(grep \"PUPPET_EXTRA_OPTS=--logdest /var/log/puppet/puppet-agent.log\" /etc/sysconfig/puppetagent)\" == \"\" ]]; then "
+                                           + "  sudo sh -c 'echo -e \"\\nPUPPET_EXTRA_OPTS=--logdest /var/log/puppet/puppet-agent.log\" >> /etc/sysconfig/puppetagent'; "
+                                           + "fi", node));
+
+                // start puppet agent
+                commands.add(createCommand("sudo systemctl start puppet", node));
+
+                // force applying updated puppet config at the adding node
+                commands.add(createForcePuppetAgentCommand(node));
+
+                // wait until docker on additional node is installed by puppet; interrupt on puppet puppet errors;
+                commands.add(new PuppetErrorInterrupter(createWaitServiceActiveCommand("docker", node),
+                                                        node,
+                                                        configManager));
             }
-
-            // remove outdated certificate of agent from puppet agent, if exists
-            commands.add(createCommand(format("if sudo test -d /var/lib/puppet/ssl; then "
-                                              + "  sudo find /var/lib/puppet/ssl -name %s.pem -delete; "
-                                              + "fi", node.getHost()), node));
-
-            // install and enable puppet agent on adding node
-            commands.add(createCommand("yum clean all"));   // cleanup to avoid yum install failures
-            commands.add(createCommand(format("if [[ \"$(yum list installed | grep puppetlabs-release)\" == \"\" ]]; then "
-                                              + "  sudo yum -y -q install %s; "
-                                              + "fi", config.getValue(Config.PUPPET_RESOURCE_URL)),
-                                       node));
-            commands.add(createCommand(format("sudo yum -y -q install %s", config.getValue(Config.PUPPET_AGENT_PACKAGE)), node));
-            commands.add(createCommand("sudo systemctl enable puppet", node));
-
-            // configure puppet agent
-            commands.add(createFileBackupCommand("/etc/puppet/puppet.conf", node));
-            commands.add(createCommand(format("if [[ \"$(grep \"server = %1$s\" /etc/puppet/puppet.conf)\" == \"\" ]]; then "
-                                              + "  sudo sed -i 's/\\[main\\]/\\[main\\]\\n"
-                                              + "    server = %1$s\\n"
-                                              + "    runinterval = 420\\n"
-                                              + "    configtimeout = 600\\n/g' /etc/puppet/puppet.conf; "
-                                              + "  sudo sed -i 's/\\[agent\\]/\\[agent\\]\\n"
-                                              + "    show_diff = true\\n"
-                                              + "    pluginsync = true\\n"
-                                              + "    report = false\\n"
-                                              + "    default_schedules = false\\n"
-                                              + "    certname = %2$s\\n/g' /etc/puppet/puppet.conf; "
-                                              + "fi",
-                                              puppetMasterNodeDns,
-                                              node.getHost()),
-                                       node));
-
-            // log puppet messages into the /var/log/puppet/puppet-agent.log file instead of /var/log/messages
-            commands.add(createCommand("if [[ \"$(grep \"PUPPET_EXTRA_OPTS=--logdest /var/log/puppet/puppet-agent.log\" /etc/sysconfig/puppetagent)\" == \"\" ]]; then "
-                                       + "  sudo sh -c 'echo -e \"\\nPUPPET_EXTRA_OPTS=--logdest /var/log/puppet/puppet-agent.log\" >> /etc/sysconfig/puppetagent'; "
-                                       + "fi", node));
-
-            // start puppet agent
-            commands.add(createCommand("sudo systemctl start puppet", node));
-
-            // force applying updated puppet config at the adding node
-            commands.add(createForcePuppetAgentCommand(node));
-
-            // wait until docker on additional node is installed by puppet; interrupt on puppet puppet errors;
-            commands.add(new PuppetErrorInterrupter(createWaitServiceActiveCommand("docker", node),
-                                                    node,
-                                                    configManager));
 
             // --- register node in the swarm
             // add node dns to the $swarm_nodes as a separate row
@@ -142,7 +151,7 @@ public class NodeManagerHelperCodenvy4Impl extends NodeManagerHelper {
                                               "    fi; " +
                                               "done",
                                               config.getHostUrl(),
-                                              node.getHost())));
+                                              format("\"%s\"", additionalNodesConfigHelper.getNodeUrl(node)))));
         } catch (Exception e) {
             throw new NodeException(e.getMessage(), e);
         }
@@ -153,11 +162,11 @@ public class NodeManagerHelperCodenvy4Impl extends NodeManagerHelper {
     @Override
     public Command getRemoveNodeCommand(NodeConfig node, String property) throws IOException {
         Config config = configManager.loadInstalledCodenvyConfig();
-        AdditionalNodesConfigHelper additionalNodesConfigHelper = getNodesConfigHelper(config);
+        NodeConfigHelper nodeConfigHelper = getNodeConfigHelper(config);
 
         List<Command> commands = new ArrayList<>();
         try {
-            String value = additionalNodesConfigHelper.getValueWithoutNode(node);
+            String value = nodeConfigHelper.getValueWithoutNode(node);
 
             // remove node's dns from the swarm_nodes config property
             Iterator<Path> propertiesFiles = configManager.getCodenvyPropertiesFiles(configManager.detectInstallationType());
@@ -171,12 +180,14 @@ public class NodeManagerHelperCodenvy4Impl extends NodeManagerHelper {
             // force applying updated puppet config on puppet agent locally
             commands.add(createForcePuppetAgentCommand());
 
-            // remove node from autosign.conf
-            commands.add(createCommand(format("sudo sed -i '/^%1$s$/d' /etc/puppet/autosign.conf", node.getHost())));
+            if (! isDefaultNode(node, config.getHostUrl())) {
+                // remove node from autosign.conf
+                commands.add(createCommand(format("sudo sed -i '/^%1$s$/d' /etc/puppet/autosign.conf", node.getHost())));
 
-            // remove out-date puppet agent's certificate from puppet master
-            commands.add(createCommand(format("sudo puppet node clean %s", node.getHost())));
-            commands.add(createCommand("sudo systemctl restart puppetmaster"));
+                // remove out-date puppet agent's certificate from puppet master
+                commands.add(createCommand(format("sudo puppet node clean %s", node.getHost())));
+                commands.add(createCommand("sudo systemctl restart puppetmaster"));
+            }
 
             // wait until there is no removing node in the /usr/local/swarm/node_list
             commands.add(createCommand(format("testFile=\"/usr/local/swarm/node_list\"; " +
@@ -198,8 +209,8 @@ public class NodeManagerHelperCodenvy4Impl extends NodeManagerHelper {
     }
 
     @Override
-    public AdditionalNodesConfigHelper getNodesConfigHelper(Config config) {
-        return new AdditionalNodesConfigHelperCodenvy4Impl(config);
+    public NodeConfigHelper getNodeConfigHelper(Config config) {
+        return new NodeConfigHelperCodenvy4Impl(config);
     }
 
     @Override
@@ -208,8 +219,8 @@ public class NodeManagerHelperCodenvy4Impl extends NodeManagerHelper {
 
         List<Command> commands = new ArrayList<>();
 
-        AdditionalNodesConfigHelper nodesConfigHelper = getNodesConfigHelper(config);
-        List<String> additionalNodes = nodesConfigHelper.extractAdditionalNodesDns(NodeConfig.NodeType.MACHINE_NODE).get(nodesConfigHelper.getPropertyNameBy(NodeConfig.NodeType.MACHINE_NODE));
+        NodeConfigHelper nodeConfigHelper = getNodeConfigHelper(config);
+        List<String> additionalNodes = nodeConfigHelper.extractNodesDns(NodeConfig.NodeType.MACHINE_NODE).get(nodeConfigHelper.getPropertyNameBy(NodeConfig.NodeType.MACHINE_NODE));
         if (additionalNodes == null) {
             return CommandLibrary.EMPTY_COMMAND;
         }
@@ -217,42 +228,69 @@ public class NodeManagerHelperCodenvy4Impl extends NodeManagerHelper {
         for (String dns : additionalNodes) {
             NodeConfig node = new NodeConfig(NodeConfig.NodeType.MACHINE_NODE, dns);
 
+            if (isDefaultNode(node, config.getHostUrl())) {
+                continue;
+            }
+
             List<Command> nodeCommands = new ArrayList<>();
 
             nodeCommands.add(createFileBackupCommand("/etc/puppet/puppet.conf", node));
             nodeCommands.add(createCommand(format("sudo sed -i 's/certname = %1$s/certname = %2$s/g' /etc/puppet/puppet.conf", oldHostName, newHostName), node));
             nodeCommands.add(createCommand(format("sudo sed -i 's/server = %1$s/server = %2$s/g' /etc/puppet/puppet.conf", oldHostName, newHostName), node));
             nodeCommands.add(createCommand(format("sudo grep \"dns_alt_names = .*,%1$s.*\" /etc/puppet/puppet.conf; "
-                                              + "if [ $? -ne 0 ]; then sudo sed -i 's/dns_alt_names = .*/&,%1$s/' /etc/puppet/puppet.conf; fi", newHostName), node));  // add new host name to dns_alt_names
+                                                  + "if [ $? -ne 0 ]; then sudo sed -i 's/dns_alt_names = .*/&,%1$s/' /etc/puppet/puppet.conf; fi", newHostName),
+                                           node));  // add new host name to dns_alt_names
 
-            commands.add(new MacroCommand(nodeCommands, format("Commands to update puppet.conf file in additional node '%s'", dns)));
+            commands.add(new MacroCommand(nodeCommands, format("Commands to update puppet.conf file in node '%s'", dns)));
             commands.add(createCommand("sudo systemctl restart puppet", node));
         }
 
         return new MacroCommand(commands, "Commands to update puppet.conf file in additional nodes.");
     }
 
-    @Override public Map<String, List<String>> getNodes() throws IOException {
+    @Override
+    public Map<String, List<String>> getNodes() throws IOException {
         Config config = configManager.loadInstalledCodenvyConfig();
 
-        AdditionalNodesConfigHelper helper = getNodesConfigHelper(config);
-        Map<String, List<String>> additionalMachines = helper.extractAdditionalNodesDns(NodeConfig.NodeType.MACHINE_NODE);
-        if (additionalMachines != null) {
-            return additionalMachines;
+        NodeConfigHelper helper = getNodeConfigHelper(config);
+        Map<String, List<String>> nodes = helper.extractNodesDns(NodeConfig.NodeType.MACHINE_NODE);
+        if (nodes != null) {
+            return nodes;
         }
 
         return new HashMap<>();
     }
 
-    @Override 
-    public NodeConfig.NodeType recognizeNodeTypeFromConfigBy(String dns) throws IOException {
+    @Override
+    public void validateLicense() throws IOException {
         Config config = configManager.loadInstalledCodenvyConfig();
-        String additionalNodes = config.getValueWithoutSubstitution(Config.SWARM_NODES);   // don't substitute enclosed variables like the "$host_url"
-
-        if (additionalNodes != null && additionalNodes.contains(dns)) {
-            return NodeConfig.NodeType.MACHINE_NODE;
+        if (getNodeConfigHelper(config).getNodeNumber() == 0) {
+            return;
         }
 
-        return null;
+        try {
+            CodenvyLicense codenvyLicense = licenseManager.load();
+
+            CodenvyLicense.LicenseType licenseType = codenvyLicense.getLicenseType();
+            if (codenvyLicense.isExpired()) {
+                switch (licenseType) {
+                    case EVALUATION_PRODUCT_KEY:
+                        throw new IllegalStateException("Your Codenvy subscription only allows a single server.");
+                    case PRODUCT_KEY:
+                    default:
+                        // do nothing
+                }
+            }
+        } catch (LicenseNotFoundException e) {
+            throw new IllegalStateException("Your Codenvy subscription only allows a single server.");
+        } catch (InvalidLicenseException e) {
+            throw new IllegalStateException("Codenvy License is invalid or has unappropriated format.");
+        } catch (LicenseException e) {
+            throw new IllegalStateException("Codenvy License can't be validated.", e);
+        }
+    }
+
+    private boolean isDefaultNode(NodeConfig node, String hostUrl) {
+        return node.getHost().equals(hostUrl);
     }
 }

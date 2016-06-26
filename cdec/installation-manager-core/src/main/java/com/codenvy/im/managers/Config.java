@@ -17,6 +17,7 @@ package com.codenvy.im.managers;
 import com.codenvy.im.utils.Version;
 import com.google.common.collect.ImmutableList;
 
+import com.google.common.collect.ImmutableMap;
 import org.eclipse.che.commons.annotation.Nullable;
 
 import java.nio.file.Path;
@@ -121,17 +122,11 @@ public class Config {
                                                                                  SINGLE_SERVER_4_0_PROPERTIES,
                                                                                  SINGLE_SERVER_PP);
 
-    public static final Map<String, Map<String, String>> PROPERTIES_BY_VERSION = new HashMap<String, Map<String, String>>() {{
-        put(PUPPET_AGENT_PACKAGE, new HashMap<String, String>() {{
-            put("7", "puppet-3.8.6-1.el7.noarch");
-        }});
-        put(PUPPET_SERVER_PACKAGE, new HashMap<String, String>() {{
-            put("7", "puppet-server-3.8.6-1.el7.noarch");
-        }});
-        put(PUPPET_RESOURCE_URL, new HashMap<String, String>() {{
-            put("7", "https://yum.puppetlabs.com/el/7/products/x86_64/puppetlabs-release-7-11.noarch.rpm");
-        }});
-    }};
+    public static final Map<String, Map<String, String>> PROPERTIES_BY_VERSION = ImmutableMap.of(
+        PUPPET_AGENT_PACKAGE, ImmutableMap.of("7", "puppet-3.8.6-1.el7.noarch"),
+        PUPPET_SERVER_PACKAGE, ImmutableMap.of("7", "puppet-server-3.8.6-1.el7.noarch"),
+        PUPPET_RESOURCE_URL, ImmutableMap.of("7", "https://yum.puppetlabs.com/el/7/products/x86_64/puppetlabs-release-7-11.noarch.rpm")
+    );
 
     public static final Set<String> PROPERTIES_DEPEND_ON_VERSION = PROPERTIES_BY_VERSION.keySet();
 
@@ -197,7 +192,7 @@ public class Config {
         return value;
     }
 
-    /** @return list of property values separated by delimiter. Don't substitute enclosed variables like $host_url */
+    /** @return list of property values separated by delimiter. Substitute enclosed variables like $host_url */
     @Nullable
     public List<String> getAllValues(String property, String delimiter) {
         property = property.toLowerCase();
@@ -205,7 +200,7 @@ public class Config {
         if (PROPERTIES_DEPEND_ON_VERSION.contains(property)) {
             value = PROPERTIES_BY_VERSION.get(property).get(getVersion());
         } else {
-            value = getValueWithoutSubstitution(property);
+            value = getValue(property);
         }
 
         List<String> result = new LinkedList<>();

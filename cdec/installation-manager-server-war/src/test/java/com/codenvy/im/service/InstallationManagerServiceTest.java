@@ -30,7 +30,7 @@ import com.codenvy.im.managers.InstallOptions;
 import com.codenvy.im.managers.InstallType;
 import com.codenvy.im.managers.PropertiesNotFoundException;
 import com.codenvy.im.managers.PropertyNotFoundException;
-import com.codenvy.im.managers.helper.AdditionalNodesConfigHelperCodenvy3Impl;
+import com.codenvy.im.managers.helper.NodeConfigHelperCodenvy3Impl;
 import com.codenvy.im.response.BackupInfo;
 import com.codenvy.im.response.DownloadProgressResponse;
 import com.codenvy.im.response.InstallArtifactInfo;
@@ -379,9 +379,9 @@ public class InstallationManagerServiceTest {
         doReturn("local").when(config).getHostUrl();
         doReturn("3.0.0").when(config).getValue(Config.VERSION);
         doReturn(null).when(config).getAllValues(Config.ADDITIONAL_BUILDERS,
-                                                 String.valueOf(AdditionalNodesConfigHelperCodenvy3Impl.ADDITIONAL_NODE_DELIMITER));
+                                                 String.valueOf(NodeConfigHelperCodenvy3Impl.NODE_DELIMITER));
         doReturn(null).when(config).getAllValues(Config.ADDITIONAL_RUNNERS,
-                                                 String.valueOf(AdditionalNodesConfigHelperCodenvy3Impl.ADDITIONAL_NODE_DELIMITER));
+                                                 String.valueOf(NodeConfigHelperCodenvy3Impl.NODE_DELIMITER));
 
         doReturn(InstallType.SINGLE_SERVER).when(configManager).detectInstallationType();
         doReturn(config).when(configManager).loadInstalledCodenvyConfig(InstallType.SINGLE_SERVER);

@@ -16,26 +16,21 @@ package com.codenvy.im.managers.helper;
 
 import com.codenvy.im.commands.Command;
 import com.codenvy.im.commands.CommandLibrary;
-import com.codenvy.im.commands.MacroCommand;
 import com.codenvy.im.managers.Config;
 import com.codenvy.im.managers.ConfigManager;
-import com.codenvy.im.managers.InstallType;
 import com.codenvy.im.managers.NodeConfig;
 import com.codenvy.im.managers.UnknownInstallationTypeException;
-import com.google.common.collect.ImmutableList;
 import org.eclipse.che.commons.annotation.Nullable;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static com.codenvy.im.commands.SimpleCommand.createCommand;
-
 /**
  * @author Dmytro Nochevnov
  */
 public abstract class NodeManagerHelper {
-    protected ConfigManager configManager;
+    protected ConfigManager         configManager;
 
     public NodeManagerHelper(ConfigManager configManager) {
         this.configManager = configManager;
@@ -49,13 +44,12 @@ public abstract class NodeManagerHelper {
     public abstract void checkInstallType() throws IllegalStateException, UnknownInstallationTypeException, IOException;
 
     /**
-     * Read all urls of additional nodes stored from the puppet master config, find out node with certain dns and return type of additional node with
-     * certain dns.
+     * Read all urls from list of nodes stored from the puppet master config, find out node with certain dns and then return type of this node.
      */
     @Nullable
     public NodeConfig.NodeType recognizeNodeTypeFromConfigBy(String dns) throws IOException {
         Config config = configManager.loadInstalledCodenvyConfig();
-        return getNodesConfigHelper(config).recognizeNodeTypeFromConfigBy(dns);
+        return getNodeConfigHelper(config).recognizeNodeTypeFromConfigBy(dns);
     }
 
     /**
@@ -64,18 +58,18 @@ public abstract class NodeManagerHelper {
     @Nullable
     public String getPropertyNameBy(NodeConfig.NodeType nodeType) throws IOException {
         Config config = configManager.loadInstalledCodenvyConfig();
-        return getNodesConfigHelper(config).getPropertyNameBy(nodeType);
+        return getNodeConfigHelper(config).getPropertyNameBy(nodeType);
     }
 
     /**
-     * Iterate through registered additional node types to find type which = prefix of dns, and then return NodeConfig(found_type, dns).
+     * Iterate through registered node types to find type which = prefix of dns, and then return NodeConfig(found_type, dns).
      */
     public NodeConfig recognizeNodeConfigFromDns(String dns) throws IllegalArgumentException, IllegalStateException, IOException {
         Config config = configManager.loadInstalledCodenvyConfig();
-        return getNodesConfigHelper(config).recognizeNodeConfigFromDns(dns);
+        return getNodeConfigHelper(config).recognizeNodeConfigFromDns(dns);
     }
 
-    public abstract AdditionalNodesConfigHelper getNodesConfigHelper(Config config);
+    public abstract NodeConfigHelper getNodeConfigHelper(Config config);
 
     /** Update puppet.conf on additional nodes */
     public abstract Command getUpdatePuppetConfigCommand(String oldHostName, String newHostName) throws IOException;
@@ -97,4 +91,5 @@ public abstract class NodeManagerHelper {
         return CommandLibrary.createCheckRemotePortOpenedCommand(puppetMasterNodeDns, 8140, node);
     }
 
+    abstract public void validateLicense() throws IOException;
 }

@@ -221,53 +221,6 @@ public class TestInstallationManagerFacade extends BaseTest {
         installationManagerFacade.addNode("builder.node.com");
     }
 
-    @Test(expectedExceptions = IllegalStateException.class,
-        expectedExceptionsMessageRegExp = "Codenvy License is invalid or has unappropriated format.")
-    public void testAddNodeShouldFailedWhenLicenseInvalid() throws IOException {
-        doReturn(ImmutableMap.of(cdecArtifact, Version.valueOf("4.0.0"))).when(installManager).getInstalledArtifacts();
-        doThrow(new InvalidLicenseException("error")).when(codenvyLicenseManager).load();
-
-        installationManagerFacade.addNode("builder.node.com");
-
-        verify(nodeManager, never()).add(anyString());
-    }
-
-    @Test(expectedExceptions = IllegalStateException.class,
-        expectedExceptionsMessageRegExp = "Your Codenvy subscription only allows a single server.")
-    public void testAddNodeShouldFailedWhenLicenseNotFound() throws IOException {
-        doReturn(ImmutableMap.of(cdecArtifact, Version.valueOf("4.0.0"))).when(installManager).getInstalledArtifacts();
-        doThrow(new LicenseNotFoundException("error")).when(codenvyLicenseManager).load();
-
-        installationManagerFacade.addNode("builder.node.com");
-
-        verify(nodeManager, never()).add(anyString());
-    }
-
-    @Test(expectedExceptions = IllegalStateException.class)
-    public void testAddNodeShouldFailedWhenEvaluationKeyExpired() throws IOException {
-        doReturn(ImmutableMap.of(cdecArtifact, Version.valueOf("4.0.0"))).when(installManager).getInstalledArtifacts();
-        doReturn(codenvyLicense).when(codenvyLicenseManager).load();
-        doReturn(Boolean.TRUE).when(codenvyLicense).isExpired();
-        doReturn(CodenvyLicense.LicenseType.EVALUATION_PRODUCT_KEY).when(codenvyLicense).getLicenseType();
-
-        installationManagerFacade.addNode("builder.node.com");
-
-        verify(nodeManager, never()).add(anyString());
-    }
-
-    @Test
-    public void testAddNodeShouldPassWhenProductKeyExpired() throws IOException {
-        doReturn(new NodeConfig(NodeConfig.NodeType.BUILDER, "builder.node.com")).when(nodeManager).add("builder.node.com");
-        doReturn(ImmutableMap.of(cdecArtifact, Version.valueOf("4.0.0"))).when(installManager).getInstalledArtifacts();
-        doReturn(codenvyLicense).when(codenvyLicenseManager).load();
-        doReturn(CodenvyLicense.LicenseType.PRODUCT_KEY).when(codenvyLicense).getLicenseType();
-        doReturn(Boolean.TRUE).when(codenvyLicense).isExpired();
-
-        installationManagerFacade.addNode("builder.node.com");
-
-        verify(nodeManager).add(anyString());
-    }
-
     @Test
     public void testRemoveNode() throws IOException {
         final String TEST_NODE_DNS = "builder.node.com";

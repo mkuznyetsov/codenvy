@@ -19,6 +19,7 @@ import com.codenvy.im.artifacts.ArtifactFactory;
 import com.codenvy.im.artifacts.CDECArtifact;
 import com.codenvy.im.artifacts.UnsupportedArtifactVersionException;
 import com.codenvy.im.commands.Command;
+import com.codenvy.im.license.CodenvyLicenseManager;
 import com.codenvy.im.managers.helper.NodeManagerHelper;
 import com.codenvy.im.managers.helper.NodeManagerHelperCodenvy3Impl;
 import com.codenvy.im.managers.helper.NodeManagerHelperCodenvy4Impl;
@@ -40,25 +41,28 @@ public class NodeManager {
     private final Map<Integer, NodeManagerHelper> HELPERS;
 
     @Inject
-    public NodeManager(ConfigManager configManager) throws IOException {
+    public NodeManager(ConfigManager configManager,
+                       CodenvyLicenseManager licenseManager) throws IOException {
         this.configManager = configManager;
 
         HELPERS = ImmutableMap.of(
             3, new NodeManagerHelperCodenvy3Impl(configManager),
-            4, new NodeManagerHelperCodenvy4Impl(configManager)
+            4, new NodeManagerHelperCodenvy4Impl(configManager, licenseManager)
         );
     }
 
     /**
      * @param dns
      * @throws IllegalArgumentException
-     *         if node type isn't supported, or if there is adding node in the list of additional nodes
+     *         if node type isn't supported, or if there is adding node in the list of existed nodes
      */
     public NodeConfig add(String dns) throws IOException, IllegalArgumentException {
         getHelper().checkInstallType();
 
         Config config = configManager.loadInstalledCodenvyConfig();
         NodeConfig addingNode = getHelper().recognizeNodeConfigFromDns(dns);
+
+        getHelper().validateLicense();
 
         String nodeSshUser = config.getValue(Config.NODE_SSH_USER_NAME);
         addingNode.setUser(nodeSshUser);
@@ -78,7 +82,7 @@ public class NodeManager {
 
     /**
      * @throws IllegalArgumentException
-     *         if node type isn't supported, or if there is no removing node in the list of additional nodes
+     *         if node type isn't supported, or if there is no removing node in the list of existed nodes
      */
     public NodeConfig remove(String dns) throws IOException, IllegalArgumentException {
         getHelper().checkInstallType();

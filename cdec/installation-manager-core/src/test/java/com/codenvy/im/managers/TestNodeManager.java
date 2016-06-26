@@ -20,6 +20,7 @@ import com.codenvy.im.agent.ConnectionException;
 import com.codenvy.im.artifacts.UnsupportedArtifactVersionException;
 import com.codenvy.im.commands.Command;
 import com.codenvy.im.commands.CommandException;
+import com.codenvy.im.license.CodenvyLicenseManager;
 import com.codenvy.im.managers.helper.NodeManagerHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -31,10 +32,13 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Paths;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,11 +48,13 @@ import static org.testng.Assert.assertEquals;
 public class TestNodeManager extends BaseTest {
 
     @Mock
-    private ConfigManager     mockConfigManager;
+    private ConfigManager         mockConfigManager;
     @Mock
-    private Command           mockCommand;
+    private CodenvyLicenseManager mockLicenseManager;
     @Mock
-    private NodeManagerHelper mockHelper;
+    private Command               mockCommand;
+    @Mock
+    private NodeManagerHelper     mockHelper;
 
     private static final String              TEST_NODE_DNS  = "localhost";
     private static final NodeConfig.NodeType TEST_NODE_TYPE = NodeConfig.NodeType.RUNNER;
@@ -62,7 +68,7 @@ public class TestNodeManager extends BaseTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        spyManager = spy(new NodeManager(mockConfigManager));
+        spyManager = spy(new NodeManager(mockConfigManager, mockLicenseManager));
 
         doReturn(mockHelper).when(spyManager).getHelper();
 
@@ -227,7 +233,7 @@ public class TestNodeManager extends BaseTest {
     @Test(expectedExceptions = UnsupportedArtifactVersionException.class,
         expectedExceptionsMessageRegExp = "Version '1.0.0' of artifact 'codenvy' is not supported")
     public void shouldThrowUnsupportedArtifactVersionExceptionWhenAdd() throws Exception {
-        NodeManager manager = new NodeManager(mockConfigManager);
+        NodeManager manager = new NodeManager(mockConfigManager, mockLicenseManager);
         doReturn(new Config(ImmutableMap.of(Config.VERSION, UNSUPPORTED_VERSION)))
             .when(mockConfigManager).loadInstalledCodenvyConfig();
 
@@ -237,10 +243,18 @@ public class TestNodeManager extends BaseTest {
     @Test(expectedExceptions = UnsupportedArtifactVersionException.class,
         expectedExceptionsMessageRegExp = "Version '1.0.0' of artifact 'codenvy' is not supported")
     public void shouldThrowUnsupportedArtifactVersionExceptionWhenRemove() throws Exception {
-        NodeManager manager = new NodeManager(mockConfigManager);
+        NodeManager manager = new NodeManager(mockConfigManager, mockLicenseManager);
         doReturn(new Config(ImmutableMap.of(Config.VERSION, UNSUPPORTED_VERSION)))
             .when(mockConfigManager).loadInstalledCodenvyConfig();
 
         manager.remove(TEST_NODE_DNS);
+    }
+
+    @Test(expectedExceptions = IllegalStateException.class,
+        expectedExceptionsMessageRegExp = "Codenvy License error")
+    public void testAddNodeShouldFailedWhenLicenseInvalid() throws Exception {
+        doThrow(new IllegalStateException("Codenvy License error")).when(mockHelper).validateLicense();
+        spyManager.add(TEST_NODE_DNS);
+        verify(mockHelper, never()).getAddNodeCommand(any(NodeConfig.class), anyString());
     }
 }

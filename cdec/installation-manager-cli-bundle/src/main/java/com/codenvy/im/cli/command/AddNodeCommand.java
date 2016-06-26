@@ -16,6 +16,7 @@ package com.codenvy.im.cli.command;
 
 import com.codenvy.im.artifacts.CDECArtifact;
 import com.codenvy.im.managers.Config;
+import com.codenvy.im.managers.helper.NodeConfigHelper;
 import com.codenvy.im.response.NodeInfo;
 import com.codenvy.im.response.NodeManagerResponse;
 import com.codenvy.im.response.ResponseCode;
@@ -78,8 +79,13 @@ public class AddNodeCommand extends AbstractIMCommand {
     protected void validateCodenvyConfig() throws IOException {
         if (isCodenvy4Installed()) {
             Config config = configManager.loadInstalledCodenvyConfig();
-            String property = config.getProperties().get(Config.MACHINE_EXTRA_HOSTS);
 
+            // check on adding default node
+            if (NodeConfigHelper.isDefaultNode(config, dns)) {
+                return;
+            }
+
+            String property = config.getProperties().get(Config.MACHINE_EXTRA_HOSTS);
             if (property == null || property.contains(DEFAULT_CODENVY_IP_FOR_THE_DOCKER_CONTAINER)) {
                 throw new IllegalStateException(
                         "This is the first time you add extra node to Codenvy. " +
