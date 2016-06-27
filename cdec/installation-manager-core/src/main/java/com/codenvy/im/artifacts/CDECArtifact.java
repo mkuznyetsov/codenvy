@@ -131,7 +131,7 @@ public class CDECArtifact extends AbstractArtifact {
     }
 
     protected Optional<Version> fetchAssemblyVersion() throws IOException {
-        Path pathToAssemblyProperties = getPathToAssemblyProperties(Version.VERSION_4);
+        Path pathToAssemblyProperties = getPathToAssemblyProperties(Version.VERSION_4_4_0);
         Command command = getReadAssemblyPropertiesCommand(pathToAssemblyProperties);
         String result = command.execute().trim();
         if (StringUtils.isEmpty(result)) {

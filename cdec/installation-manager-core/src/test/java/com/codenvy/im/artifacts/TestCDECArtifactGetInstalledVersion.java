@@ -60,14 +60,14 @@ public class TestCDECArtifactGetInstalledVersion extends BaseTest {
     public void setUp() throws Exception {
         initMocks(this);
         spyCdecArtifact = spy(new CDECArtifact(UPDATE_API_ENDPOINT, DOWNLOAD_DIR, transport, configManager, nodeManager));
-        doReturn(Paths.get(ASSEMBLY_PROPERTIES)).when(spyCdecArtifact).getPathToAssemblyProperties(Version.VERSION_4);
+        doReturn(Paths.get(ASSEMBLY_PROPERTIES)).when(spyCdecArtifact).getPathToAssemblyProperties(Version.VERSION_4_4_0);
     }
 
     @Test
     public void getPathToAssemblyProperties() throws Exception {
         CDECArtifact testCdecArtifact = new CDECArtifact(UPDATE_API_ENDPOINT, DOWNLOAD_DIR, transport, configManager, nodeManager);
         assertEquals(testCdecArtifact.getPathToAssemblyProperties(Version.VERSION_3), Paths.get("/home/codenvy/codenvy-tomcat/conf/assembly.properties"));
-        assertEquals(testCdecArtifact.getPathToAssemblyProperties(Version.VERSION_4), Paths.get("/home/codenvy/tomcat/conf/assembly.properties"));
+        assertEquals(testCdecArtifact.getPathToAssemblyProperties(Version.VERSION_4_4_0), Paths.get("/home/codenvy/tomcat/conf/assembly.properties"));
     }
 
     @Test
@@ -75,7 +75,7 @@ public class TestCDECArtifactGetInstalledVersion extends BaseTest {
         prepareSingleNodeEnv(configManager, transport);
 
         doReturn(Paths.get(ASSEMBLY_PROPERTIES)).when(spyCdecArtifact).getPathToAssemblyProperties(Version.VERSION_3);
-        doReturn(Paths.get("target/non-exist")).when(spyCdecArtifact).getPathToAssemblyProperties(Version.VERSION_4);
+        doReturn(Paths.get("target/non-exist")).when(spyCdecArtifact).getPathToAssemblyProperties(Version.VERSION_4_4_0);
         assertEquals(spyCdecArtifact.fetchAssemblyVersion(), Optional.of(TEST_VERSION));
     }
 
@@ -84,7 +84,7 @@ public class TestCDECArtifactGetInstalledVersion extends BaseTest {
         prepareSingleNodeEnv(configManager, transport);
 
         doReturn(Paths.get("target/non-exist")).when(spyCdecArtifact).getPathToAssemblyProperties(Version.VERSION_3);
-        doReturn(Paths.get(ASSEMBLY_PROPERTIES)).when(spyCdecArtifact).getPathToAssemblyProperties(Version.VERSION_4);
+        doReturn(Paths.get(ASSEMBLY_PROPERTIES)).when(spyCdecArtifact).getPathToAssemblyProperties(Version.VERSION_4_4_0);
         assertEquals(spyCdecArtifact.fetchAssemblyVersion(), Optional.of(TEST_VERSION));
     }
 

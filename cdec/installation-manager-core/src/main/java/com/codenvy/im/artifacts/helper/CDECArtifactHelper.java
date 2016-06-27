@@ -63,12 +63,13 @@ public abstract class CDECArtifactHelper {
 
     /**
      * @param codenvyVersion
-     * @return path to "/home/codenvy/codenvy-tomcat" for Codenvy 3.x, or
+     * @return path to "/home/codenvy/codenvy-tomcat" for Codenvy version < 4.4.0, or
      * path to "/home/codenvy/tomcat" for other versions of Codenvy
      */
     public Path getPathToCodenvyRoot(Version codenvyVersion) {
+        boolean isCodenvyVersionLessThen_4_4_0 = codenvyVersion.compareTo(Version.valueOf("4.3.4")) <= 0;
         return Paths.get(format("/home/codenvy/%s",
-                                codenvyVersion.is3Major() ? "codenvy-tomcat" : "tomcat"));
+                                isCodenvyVersionLessThen_4_4_0 ? "codenvy-tomcat" : "tomcat"));
     }
 
     /**

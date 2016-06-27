@@ -74,8 +74,8 @@ public class Version implements Comparable<Version> {
         this.isSnapshot = isSnapshot;
     }
 
-    public static final Version VERSION_3 = Version.valueOf("3.0.0");
-    public static final Version VERSION_4 = Version.valueOf("4.0.0");
+    public static final Version VERSION_3     = Version.valueOf("3.0.0");
+    public static final Version VERSION_4_4_0 = Version.valueOf("4.4.0");
 
     /**
      * Checks if version format is valid.

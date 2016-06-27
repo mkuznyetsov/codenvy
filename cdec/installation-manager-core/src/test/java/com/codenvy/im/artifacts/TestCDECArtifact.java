@@ -144,7 +144,7 @@ public class TestCDECArtifact extends BaseTest {
 
         OSUtils.VERSION = "7";
 
-        doReturn(Paths.get(ASSEMBLY_PROPERTIES)).when(spyCdecArtifact).getPathToAssemblyProperties(Version.VERSION_4);
+        doReturn(Paths.get(ASSEMBLY_PROPERTIES)).when(spyCdecArtifact).getPathToAssemblyProperties(Version.VERSION_4_4_0);
         doReturn(Paths.get(ASSEMBLY_PROPERTIES)).when(spyCdecArtifact).getPathToAssemblyProperties(Version.VERSION_3);
     }
 
