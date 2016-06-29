@@ -835,8 +835,8 @@ public class TestCDECArtifact extends BaseTest {
         assertEquals(commands.get(k++).toString(), "{'command'='sudo sed -i 's/server = old/server = new/g' /etc/puppet/puppet.conf', 'agent'='LocalAgent'}");
         assertEquals(commands.get(k++).toString(), "{'command'='sudo grep \"dns_alt_names = .*,new.*\" /etc/puppet/puppet.conf; if [ $? -ne 0 ]; then sudo sed -i 's/dns_alt_names = .*/&,new/' /etc/puppet/puppet.conf; fi', 'agent'='LocalAgent'}");
         assertEquals(commands.get(k++).toString(), "{'command'='sudo systemctl restart puppet', 'agent'='LocalAgent'}");
-        assertEquals(commands.get(k++).toString(), "{'command'='while true; do\n"
-                                                   + "  COUNTER=0\n"
+        assertEquals(commands.get(k++).toString(), "{'command'='COUNTER=0\n"
+                                                   + "  while true; do\n"
                                                    + "  sudo puppet cert list --all | grep '\"new\"' &>/dev/null\n"
                                                    + "  hasCertificate=$?\n"
                                                    + "  if [[ $hasCertificate == 0 ]]; then\n"
@@ -916,8 +916,8 @@ public class TestCDECArtifact extends BaseTest {
         assertEquals(commands.get(k++).toString(), "{'command'='sudo sed -i 's/server = old/server = new/g' /etc/puppet/puppet.conf', 'agent'='LocalAgent'}");
         assertEquals(commands.get(k++).toString(), "{'command'='sudo grep \"dns_alt_names = .*,new.*\" /etc/puppet/puppet.conf; if [ $? -ne 0 ]; then sudo sed -i 's/dns_alt_names = .*/&,new/' /etc/puppet/puppet.conf; fi', 'agent'='LocalAgent'}");
         assertEquals(commands.get(k++).toString(), "{'command'='sudo systemctl restart puppet', 'agent'='LocalAgent'}");
-        assertEquals(commands.get(k++).toString(), "{'command'='while true; do\n"
-                                                   + "  COUNTER=0\n"
+        assertEquals(commands.get(k++).toString(), "{'command'='COUNTER=0\n"
+                                                   + "  while true; do\n"
                                                    + "  sudo puppet cert list --all | grep '\"new\"' &>/dev/null\n"
                                                    + "  hasCertificate=$?\n"
                                                    + "  if [[ $hasCertificate == 0 ]]; then\n"

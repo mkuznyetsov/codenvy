@@ -562,8 +562,8 @@ public class CDECSingleServerHelper extends CDECArtifactHelper {
         commands.add(createCommand("sudo systemctl restart puppet"));
 
         // restart puppetmaster after puppet agent generates certificate for new certname=newHostName
-        commands.add(createCommand(format("while true; do\n"
-                                          + "  COUNTER=0\n"
+        commands.add(createCommand(format("COUNTER=0\n"
+                                          + "  while true; do\n"
                                           + "  sudo puppet cert list --all | grep '\"%s\"' &>/dev/null\n"
                                           + "  hasCertificate=$?\n"
                                           + "  if [[ $hasCertificate == 0 ]]; then\n"

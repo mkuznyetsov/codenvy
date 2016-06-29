@@ -21,6 +21,7 @@
 trap cleanUp EXIT
 
 cleanUp() {
+    log "clean up on exit"
     vagrantDestroy
 }
 
@@ -69,12 +70,15 @@ validateExitCode() {
         printAndLog "================================================="
     fi
 
-    vagrantDestroy
     exit 1
 }
 
 retrieveTestLogs() {
     INSTALL_ON_NODE=$(detectMasterNode)
+    if [[ -z $INSTALL_ON_NODE ]]; then
+        exit
+    fi
+
     logDirName="logs/`basename "$0" | sed 's/\\.sh//g'`"
     log "Name of directory with logs: ${logDirName}"
     [[ -d "${logDirName}" ]] && exit
@@ -136,8 +140,6 @@ retrieveTestLogs() {
 
 vagrantDestroy() {
     if [[ $RHEL_OS == true ]]; then
-        INSTALL_ON_NODE=$(detectMasterNode)
-
         # remove RHEL OS subscription
         executeSshCommand --bypass-validation "sudo subscription-manager remove --all"
         executeSshCommand --bypass-validation "sudo subscription-manager unregister"
@@ -343,8 +345,6 @@ detectMasterNode() {
         ping -c1 -q ${HOST_URL} >> /dev/null
         if [[ $? == 0 ]]; then
             echo ${HOST_URL}
-        else
-            validateExitCode 1
         fi
     fi
 }
