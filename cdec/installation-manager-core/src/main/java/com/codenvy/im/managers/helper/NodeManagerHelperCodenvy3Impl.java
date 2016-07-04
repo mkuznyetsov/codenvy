@@ -21,13 +21,13 @@ import com.codenvy.im.commands.CommandLibrary;
 import com.codenvy.im.commands.MacroCommand;
 import com.codenvy.im.commands.WaitOnAliveArtifactCommand;
 import com.codenvy.im.commands.decorators.PuppetErrorInterrupter;
+import com.codenvy.im.license.CodenvyLicenseManager;
 import com.codenvy.im.managers.Config;
 import com.codenvy.im.managers.ConfigManager;
 import com.codenvy.im.managers.InstallType;
 import com.codenvy.im.managers.NodeConfig;
 import com.codenvy.im.managers.NodeException;
 import com.codenvy.im.managers.UnknownInstallationTypeException;
-import com.codenvy.im.utils.Version;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -58,7 +58,7 @@ public class NodeManagerHelperCodenvy3Impl extends NodeManagerHelper {
     @Override
     public Command getAddNodeCommand(NodeConfig node, String property) throws IOException {
         Config config = configManager.loadInstalledCodenvyConfig();
-        AdditionalNodesConfigHelper additionalNodesConfigHelper = getNodesConfigHelper(config);
+        NodeConfigHelper additionalNodesConfigHelper = getNodeConfigHelper(config);
 
         List<Command> commands = new ArrayList<>();
 
@@ -149,7 +149,7 @@ public class NodeManagerHelperCodenvy3Impl extends NodeManagerHelper {
     public Command getRemoveNodeCommand(NodeConfig node,
                                         String property) throws IOException {
         Config config = configManager.loadInstalledCodenvyConfig();
-        AdditionalNodesConfigHelper additionalNodesConfigHelper = getNodesConfigHelper(config);
+        NodeConfigHelper additionalNodesConfigHelper = getNodeConfigHelper(config);
 
         try {
             String value = additionalNodesConfigHelper.getValueWithoutNode(node);
@@ -214,13 +214,13 @@ public class NodeManagerHelperCodenvy3Impl extends NodeManagerHelper {
         Map<String, List<String>> nodes = new HashMap<>();
         Config config = configManager.loadInstalledCodenvyConfig();
 
-        AdditionalNodesConfigHelper helper = getNodesConfigHelper(config);
-        Map<String, List<String>> additionalRunners = helper.extractAdditionalNodesDns(NodeConfig.NodeType.RUNNER);
+        NodeConfigHelper helper = getNodeConfigHelper(config);
+        Map<String, List<String>> additionalRunners = helper.extractNodesDns(NodeConfig.NodeType.RUNNER);
         if (additionalRunners != null) {
             nodes.putAll(additionalRunners);
         }
 
-        Map<String, List<String>> additionalBuilders = helper.extractAdditionalNodesDns(NodeConfig.NodeType.BUILDER);
+        Map<String, List<String>> additionalBuilders = helper.extractNodesDns(NodeConfig.NodeType.BUILDER);
         if (additionalBuilders != null) {
             nodes.putAll(additionalBuilders);
         }
@@ -229,8 +229,13 @@ public class NodeManagerHelperCodenvy3Impl extends NodeManagerHelper {
     }
 
     @Override
-    public AdditionalNodesConfigHelper getNodesConfigHelper(Config config) {
-        return new AdditionalNodesConfigHelperCodenvy3Impl(config);
+    public void validateLicense() {
+        // Codenvy 3.x doesn't support licenses
+    }
+
+    @Override
+    public NodeConfigHelper getNodeConfigHelper(Config config) {
+        return new NodeConfigHelperCodenvy3Impl(config);
     }
 
 }

@@ -58,10 +58,14 @@ public abstract class DefaultTokenHandler implements TokenHandler {
                                             .replaceQuery(request.getQueryString())
                                             .replaceQueryParam("cookiePresent").build().toString());
         } else {
-            Subject subject = principal.getUser();
-            EnvironmentContext environmentContext = EnvironmentContext.getCurrent();
-            environmentContext.setSubject(subject);
-            chain.doFilter(requestWrapper.wrapRequest(session, request, subject), response);
+            try {
+                Subject subject = principal.getUser();
+                EnvironmentContext environmentContext = EnvironmentContext.getCurrent();
+                environmentContext.setSubject(subject);
+                chain.doFilter(requestWrapper.wrapRequest(session, request, subject), response);
+            } finally {
+                EnvironmentContext.reset();
+            }
         }
     }
 }

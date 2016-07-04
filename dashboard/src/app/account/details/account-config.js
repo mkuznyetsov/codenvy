@@ -38,6 +38,7 @@ export class AccountConfig {
     // config routes
     register.app.config(function ($routeProvider) {
       let locationProvider = {
+        title: 'Account',
         templateUrl: 'app/account/details/account.html',
         controller: 'AccountCtrl',
         controllerAs: 'accountCtrl'

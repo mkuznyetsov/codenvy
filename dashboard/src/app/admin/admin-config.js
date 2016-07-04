@@ -33,6 +33,7 @@ export class AdminConfig {
     // configure routes
     register.app.config(function ($routeProvider) {
       $routeProvider.accessWhen('/onprem/administration', {
+        title: 'Administration',
         templateUrl: 'app/admin/onprem-administration/onprem-administration.html'
       });
     });

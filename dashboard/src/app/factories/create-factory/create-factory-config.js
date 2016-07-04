@@ -71,6 +71,7 @@ export class CreateFactoryConfig {
     // config routes
     register.app.config(function ($routeProvider) {
       $routeProvider.accessWhen('/factories/create-factory', {
+        title: 'New Factory',
         templateUrl: 'app/factories/create-factory/create-factory.html',
         controller: 'CreateFactoryCtrl',
         controllerAs: 'createFactoryCtrl'

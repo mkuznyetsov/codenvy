@@ -480,7 +480,7 @@ export class LoadFactoryCtrl {
   }
 
   getIDELink() {
-    return '/ide/' + this.getWorkspace();
+    return '/ide/' + this.workspace.namespace + '/' + this.workspace.config.name;
   }
 
   backToDashboard() {

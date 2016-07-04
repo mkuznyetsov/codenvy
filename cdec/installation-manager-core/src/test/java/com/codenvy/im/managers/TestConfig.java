@@ -66,7 +66,7 @@ public class TestConfig {
     public void testGetValues(String propertyName, String propertyValue, String delimiter, String osVersion, List<String> expectedResult) {
         OSUtils.VERSION = osVersion;
         Config config = new Config(Collections.singletonMap(propertyName, propertyValue));
-        List<String> result = config.getAllValues(propertyName, delimiter);
+        List<String> result = config.getAllValuesWithoutSubstitution(propertyName, delimiter);
         assertEquals(result, expectedResult);
     }
 

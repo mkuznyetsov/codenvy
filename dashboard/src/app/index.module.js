@@ -43,6 +43,7 @@ initModule.controller('LoginCtrl', LoginCtrl);
 initModule.config(['$routeProvider', ($routeProvider) => {
   $routeProvider
     .accessWhen('/login', {
+      title: 'Login',
       templateUrl: 'app/login/login.html',
       controller: 'LoginCtrl',
       controllerAs: 'loginCtrl'
@@ -54,8 +55,17 @@ initModule.config(['$routeProvider', ($routeProvider) => {
 }]);
 
 //add tasks to run
-initModule.run(['$rootScope', 'nagMessageService', 'cheUIElementsInjectorService', 'workspaceDetailsService',
-  ($rootScope, nagMessageService, cheUIElementsInjectorService, workspaceDetailsService) => {
+initModule.run(['$rootScope', '$routeParams', 'nagMessageService', 'cheUIElementsInjectorService', 'workspaceDetailsService',
+  ($rootScope, $routeParams, nagMessageService, cheUIElementsInjectorService, workspaceDetailsService) => {
+
+    $rootScope.$on('$routeChangeSuccess', (event, next) => {
+      if (next.$$route.title && angular.isFunction(next.$$route.title)) {
+        $rootScope.currentPage = next.$$route.title($routeParams);
+      } else {
+        $rootScope.currentPage = next.$$route.title || 'Dashboard';
+      }
+    });
+
     workspaceDetailsService.addSection('Share', '<share-workspace></share-workspace>', 'icon-ic_folder_shared_24px');
     $rootScope.$on('$viewContentLoaded', () => {
       nagMessageService.createLicenseMessage();

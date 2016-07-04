@@ -27,6 +27,7 @@ export class FactoryDetailsConfig {
     // config routes
     register.app.config(function ($routeProvider) {
       let locationProvider = {
+        title: 'Factory',
         templateUrl: 'app/factories/factory-details/factory-details.html',
         controller: 'FactoryDetailsCtrl',
         controllerAs: 'factoryDetailsCtrl'

@@ -51,11 +51,11 @@ import static org.testng.Assert.assertTrue;
 public class TestNodeManagerHelperCodenvy3Impl extends BaseTest {
 
     @Mock
-    private ConfigManager               mockConfigManager;
+    private ConfigManager    mockConfigManager;
     @Mock
-    private AdditionalNodesConfigHelper mockNodesConfigHelper;
+    private NodeConfigHelper mockNodeConfigHelper;
     @Mock
-    private Command                     mockCommand;
+    private Command          mockCommand;
 
     private static final String              TEST_NODE_DNS  = "runner1.hostname";
     private static final NodeConfig.NodeType TEST_NODE_TYPE = NodeConfig.NodeType.RUNNER;
@@ -76,13 +76,13 @@ public class TestNodeManagerHelperCodenvy3Impl extends BaseTest {
                                   Paths.get("/etc/puppet/" + Config.MULTI_SERVER_BASE_CONFIG_PP)).iterator())
             .when(mockConfigManager).getCodenvyPropertiesFiles(InstallType.MULTI_SERVER);
 
-        doReturn(mockNodesConfigHelper).when(spyHelperCodenvy3).getNodesConfigHelper(any(Config.class));
+        doReturn(mockNodeConfigHelper).when(spyHelperCodenvy3).getNodeConfigHelper(any(Config.class));
 
         initConfigs();
     }
 
     private void initConfigs() throws IOException {
-        doReturn(TEST_VALUE_WITH_NODE).when(mockNodesConfigHelper).getValueWithNode(TEST_NODE);
+        doReturn(TEST_VALUE_WITH_NODE).when(mockNodeConfigHelper).getValueWithNode(TEST_NODE);
     }
 
     @Test
@@ -250,36 +250,36 @@ public class TestNodeManagerHelperCodenvy3Impl extends BaseTest {
 
     @Test
     public void testRecognizeNodeTypeFromConfigBy() throws Exception {
-        doReturn(NodeConfig.NodeType.RUNNER).when(mockNodesConfigHelper).recognizeNodeTypeFromConfigBy(TEST_NODE_DNS);
+        doReturn(NodeConfig.NodeType.RUNNER).when(mockNodeConfigHelper).recognizeNodeTypeFromConfigByDns(TEST_NODE_DNS);
         assertEquals(spyHelperCodenvy3.recognizeNodeTypeFromConfigBy(TEST_NODE_DNS), NodeConfig.NodeType.RUNNER);        
     }
 
     @Test
     public void testGetPropertyNameBy() throws Exception {
-        doReturn(ADDITIONAL_RUNNERS_PROPERTY_NAME).when(mockNodesConfigHelper).getPropertyNameBy(NodeConfig.NodeType.RUNNER);
+        doReturn(ADDITIONAL_RUNNERS_PROPERTY_NAME).when(mockNodeConfigHelper).getPropertyNameByType(NodeConfig.NodeType.RUNNER);
         assertEquals(spyHelperCodenvy3.getPropertyNameBy(NodeConfig.NodeType.RUNNER), ADDITIONAL_RUNNERS_PROPERTY_NAME);
     }
 
     @Test
     public void testRecognizeNodeConfigFromDns() throws Exception {
-        doReturn(TEST_NODE).when(mockNodesConfigHelper).recognizeNodeConfigFromDns(TEST_NODE_DNS);
+        doReturn(TEST_NODE).when(mockNodeConfigHelper).recognizeNodeConfigFromDns(TEST_NODE_DNS);
         assertEquals(spyHelperCodenvy3.recognizeNodeConfigFromDns(TEST_NODE_DNS), TEST_NODE);        
     }
 
     @Test
     public void testNodesConfigHelper() throws Exception {
         prepareMultiNodeEnv(mockConfigManager);
-        AdditionalNodesConfigHelper helper = spyHelperCodenvy3.getNodesConfigHelper(new Config(Collections.EMPTY_MAP));
+        NodeConfigHelper helper = spyHelperCodenvy3.getNodeConfigHelper(new Config(Collections.EMPTY_MAP));
         assertNotNull(helper);
     }
 
     @Test
     public void testGetNodes() throws Exception {
         ImmutableMap<String, ImmutableList<String>> testBuilders = ImmutableMap.of(Config.ADDITIONAL_BUILDERS, ImmutableList.of("builder1.test.com", "builder2.test.com"));
-        doReturn(testBuilders).when(mockNodesConfigHelper).extractAdditionalNodesDns(NodeConfig.NodeType.BUILDER);
+        doReturn(testBuilders).when(mockNodeConfigHelper).extractNodesDns(NodeConfig.NodeType.BUILDER);
 
         ImmutableMap<String, ImmutableList<String>> testRunners = ImmutableMap.of(Config.ADDITIONAL_RUNNERS, ImmutableList.of("runner2.test.com"));
-        doReturn(testRunners).when(mockNodesConfigHelper).extractAdditionalNodesDns(NodeConfig.NodeType.RUNNER);
+        doReturn(testRunners).when(mockNodeConfigHelper).extractNodesDns(NodeConfig.NodeType.RUNNER);
 
         Map result = spyHelperCodenvy3.getNodes();
         Map expected = new HashMap(testBuilders);
@@ -287,4 +287,8 @@ public class TestNodeManagerHelperCodenvy3Impl extends BaseTest {
         assertEquals(result, expected);
     }
 
+    @Test
+    public void testValidateLicenseDoNothing() throws IOException {
+        spyHelperCodenvy3.validateLicense();
+    }
 }

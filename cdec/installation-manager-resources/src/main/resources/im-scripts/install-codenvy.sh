@@ -1366,6 +1366,11 @@ doCheckResourceAccess() {
 }
 
 doCheckRedhatSubscription() {
+    # check if subscription-manager exists in system
+    if ! sudo subscription-manager &> /dev/null; then
+        return
+    fi
+
     # check validity of subscription
     if ! sudo subscription-manager status &> /dev/null; then
         local reposToDisplay=$(printf "'%s', " "${RHEL_REPOS[@]}")

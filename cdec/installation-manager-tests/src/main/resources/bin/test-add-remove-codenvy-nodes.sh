@@ -42,7 +42,7 @@ validateExpectedString ".*http://builder2.codenvy:8080/builder/internal/builder.
 
 # Incorrect name
 executeIMCommand "--valid-exit-code=1" "add-node" "bla-bla-bla"
-validateExpectedString ".*Illegal.DNS.name.'bla-bla-bla'.of.additional.node..Correct.DNS.name.templates\:.\['builder<number>.codenvy',.'runner<number>.codenvy'\].*"
+validateExpectedString ".*Illegal.DNS.name.'bla-bla-bla'.of.node..Correct.DNS.name.templates\:.\['builder<number>.codenvy',.'runner<number>.codenvy'\].*"
 
 # Host is not reachable
 executeIMCommand "--valid-exit-code=1" "add-node" "builder3.codenvy"

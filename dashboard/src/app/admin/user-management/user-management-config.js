@@ -26,6 +26,7 @@ export class AdminsUserManagementConfig {
     // configure routes
     register.app.config(function ($routeProvider) {
       $routeProvider.accessWhen('/admin/usermanagement', {
+        title: 'Users',
         templateUrl: 'app/admin/user-management/user-management.html',
         controller: 'AdminsUserManagementCtrl',
         controllerAs: 'adminsUserManagementCtrl',

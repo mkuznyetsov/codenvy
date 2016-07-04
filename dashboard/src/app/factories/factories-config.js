@@ -38,16 +38,19 @@ export class FactoryConfig {
     // config routes
     register.app.config(function ($routeProvider) {
       $routeProvider.accessWhen('/factories', {
+        title: 'Factories',
         templateUrl: 'app/factories/list-factories/list-factories.html',
         controller: 'ListFactoriesCtrl',
         controllerAs: 'listFactoriesCtrl'
       })
         .accessWhen('/load-factory', {
+          title: 'Load Factory',
           templateUrl: 'app/factories/load-factory/load-factory.html',
           controller: 'LoadFactoryCtrl',
           controllerAs: 'loadFactoryCtrl'
         })
       .accessWhen('/load-factory/:id', {
+        title: 'Load Factory',
         templateUrl: 'app/factories/load-factory/load-factory.html',
         controller: 'LoadFactoryCtrl',
         controllerAs: 'loadFactoryCtrl'

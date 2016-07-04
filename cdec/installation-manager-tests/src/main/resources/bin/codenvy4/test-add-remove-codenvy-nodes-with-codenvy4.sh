@@ -59,7 +59,7 @@ validateExpectedString ".*Node..node1.${HOST_URL}..has.been.already.used.*"
 
 # throw error that dns is incorrect
 executeIMCommand "--valid-exit-code=1" "add-node" "bla-bla-bla"
-validateExpectedString ".*Illegal.DNS.name.'bla-bla-bla'.of.additional.node..Correct.DNS.name.templates\:.\['node<number>.${HOST_URL}'\].*"
+validateExpectedString ".*Illegal.DNS.name.'bla-bla-bla'.of.node..Correct.DNS.name.templates\:.\['codenvy',.'node<number>.${HOST_URL}'\].*"
 
 # throw error that host is not reachable
 executeIMCommand "--valid-exit-code=1" "add-node" "node3.codenvy"
@@ -109,12 +109,9 @@ validateExpectedString ".*Nodes\",\"3\".*\[\" node1.${NEW_HOST_URL}\",\"node1.${
 # remove node2
 executeIMCommand "remove-node" "node2.${NEW_HOST_URL}"
 validateExpectedString ".*\"type\".\:.\"MACHINE_NODE\".*\"host\".\:.\"node2.${NEW_HOST_URL}\".*"
-
 executeSshCommand "sudo find /var/lib/puppet/ssl -name node2.${NEW_HOST_URL}.pem -delete" "node2.${NEW_HOST_URL}"  # remove puppet agent certificate
-
 doSleep "1m"  "Wait until Docker machine takes into account /usr/local/swarm/node_list config"
 executeSshCommand "sudo systemctl stop iptables"  # open port 23750
-
 doGet "http://${NEW_HOST_URL}:23750/info"
 validateExpectedString ".*Nodes\",\"2\".*\[\" node1.${NEW_HOST_URL}\",\"node1.${NEW_HOST_URL}:2375\"\].*\[\" ${NEW_HOST_URL}\",\"${NEW_HOST_URL}:2375\"\].*"
 
@@ -136,6 +133,45 @@ doSleep "1m"  "Wait until Docker machine takes into account /usr/local/swarm/nod
 executeSshCommand "sudo systemctl stop iptables"  # open port 23750
 doGet "http://${HOST_URL}:23750/info"
 validateExpectedString ".*Nodes\",\"2\".*[\" node2.${NEW_HOST_URL}\",\"node2.${NEW_HOST_URL}:2375\"].*\[\" ${NEW_HOST_URL}\",\"${NEW_HOST_URL}:2375\"\].*"
+
+# remove default node
+executeIMCommand "remove-node" "${NEW_HOST_URL}"
+validateExpectedString ".*\"type\".\:.\"MACHINE_NODE\".*\"host\".\:.\"${NEW_HOST_URL}\".*"
+doSleep "1m"  "Wait until Docker machine takes into account /usr/local/swarm/node_list config"
+executeSshCommand "sudo systemctl stop iptables"  # open port 23750
+doGet "http://${HOST_URL}:23750/info"
+validateExpectedString ".*Nodes\",\"1\".*[\" node2.${NEW_HOST_URL}\",\"node2.${NEW_HOST_URL}:2375\"].*"
+
+# try to remove default node again and throw error
+executeIMCommand "--valid-exit-code=1" "remove-node" "${NEW_HOST_URL}"
+validateExpectedString ".*Node..${NEW_HOST_URL}..is.not.found.*"
+
+# remove node2
+executeIMCommand "remove-node" "node2.${NEW_HOST_URL}"
+validateExpectedString ".*\"type\".\:.\"MACHINE_NODE\".*\"host\".\:.\"node2.${NEW_HOST_URL}\".*"
+executeSshCommand "sudo find /var/lib/puppet/ssl -name node2.${NEW_HOST_URL}.pem -delete" "node2.${NEW_HOST_URL}"  # remove puppet agent certificate
+doSleep "1m"  "Wait until Docker machine takes into account /usr/local/swarm/node_list config"
+executeSshCommand "sudo systemctl stop iptables"  # open port 23750
+doGet "http://${NEW_HOST_URL}:23750/info"
+validateExpectedString ".*Nodes\",\"0\".*"
+
+# add node2 again
+executeIMCommand "add-node" "node2.${NEW_HOST_URL}"
+validateExpectedString ".*\"type\".\:.\"MACHINE_NODE\".*\"host\".\:.\"node2.${NEW_HOST_URL}\".*"
+executeSshCommand "sudo systemctl stop iptables"  # open port 23750
+doGet "http://${HOST_URL}:23750/info"
+validateExpectedString ".*Nodes\",\"1\".*\[\" node2.${NEW_HOST_URL}\",\"node2.${NEW_HOST_URL}:2375\"].*"
+
+# add default node
+executeIMCommand "add-node" "${NEW_HOST_URL}"
+validateExpectedString ".*\"type\".\:.\"MACHINE_NODE\".*\"host\".\:.\"${NEW_HOST_URL}\".*"
+executeSshCommand "sudo systemctl stop iptables"  # open port 23750
+doGet "http://${HOST_URL}:23750/info"
+validateExpectedString ".*Nodes\",\"2\".*[\" node2.${NEW_HOST_URL}\",\"node2.${NEW_HOST_URL}:2375\"].*\[\" ${NEW_HOST_URL}\",\"${NEW_HOST_URL}:2375\"\].*"
+
+# add default node again and throw error
+executeIMCommand "--valid-exit-code=1" "add-node" "${NEW_HOST_URL}"
+validateExpectedString ".*Node..${NEW_HOST_URL}..has.been.already.used.*"
 
 printAndLog "RESULT: PASSED"
 vagrantDestroy
