@@ -98,7 +98,7 @@ public class FactoryServletTest {
 
         servlet.doGet(req, res);
 
-        verify(res).sendRedirect(contains("/dashboard/#load-factory%2F?id=" + factory.getId()));
+        verify(res).sendRedirect(contains("/dashboard/#load-factory/?id=" + factory.getId()));
     }
 
     @Test
@@ -112,7 +112,7 @@ public class FactoryServletTest {
 
         servlet.doGet(req, res);
 
-        verify(res).sendRedirect(contains("/dashboard/#load-factory%2F?github=" + githubUrl + "&anotherParameter=foo"));
+        verify(res).sendRedirect(contains("/dashboard/#load-factory/?github=" + githubUrl + "&anotherParameter=foo"));
     }
 
     @DataProvider(name = "validFactoryProvider")
