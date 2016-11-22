@@ -84,6 +84,8 @@ public class MachineModule extends AbstractModule {
         install(new org.eclipse.che.swagger.deploy.DocsModule());
         install(new org.eclipse.che.api.debugger.server.DebuggerModule());
 
+        bind(WsAgentAnalyticsAddresser.class);
+
         bind(ArchetypeGenerator.class);
 
         bind(GitUserResolver.class).to(LocalGitUserResolver.class);

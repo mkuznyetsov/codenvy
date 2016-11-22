@@ -164,6 +164,8 @@ public class OnPremisesIdeApiModule extends AbstractModule {
         bind(EverrestDownloadFileResponseFilter.class);
         bind(WSocketEventBusServer.class);
 
+        bind(WsMasterAnalyticsAddresser.class);
+
         install(new org.eclipse.che.api.core.rest.CoreRestModule());
         install(new org.eclipse.che.api.core.util.FileCleaner.FileCleanerModule());
 
